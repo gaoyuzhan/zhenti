@@ -24,3 +24,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run verify
+        env:
+          NODE_ENV: production
+          PUBLIC_BASE_PATH: /zhenti
+          PUBLIC_SITE_URL: https://gaoyuzhan.github.io
