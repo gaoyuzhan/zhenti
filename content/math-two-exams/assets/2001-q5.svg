@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 760" role="img" aria-labelledby="t d">
+<title id="t">2001 数学二选择题第5题函数及导函数选项</title><desc id="d">上方为已知函数图形，下方为导函数的四个候选图形。</desc>
+<style>text{font-family:serif;fill:#111}.a{stroke:#111;stroke-width:2.5;fill:none}.c{stroke:#111;stroke-width:4;fill:none}.s{font-size:24px}</style>
+<text x="35" y="35" class="s">y=f(x)</text>
+<g transform="translate(70,50)">
+<path class="a" d="M30 180H470M210 250V20"/><path d="M470 180l-14-8v16zM210 20l-8 14h16z" fill="#111"/>
+<path class="c" d="M55 230 C110 205 160 205 175 115 C185 75 190 60 200 45"/>
+<path class="c" d="M235 245 C270 165 325 160 365 185 C410 220 430 215 465 95"/>
+</g>
+<g transform="translate(30,340)"><text x="0" y="25" class="s">(A)</text><path class="a" d="M45 160H250M120 220V35"/><path class="c" d="M55 210 C95 190 110 120 118 35M126 230 C145 115 170 100 195 145 C220 190 235 170 245 90"/></g>
+<g transform="translate(300,340)"><text x="0" y="25" class="s">(B)</text><path class="a" d="M45 160H250M120 220V35"/><path class="c" d="M55 125 C90 115 110 85 118 35M126 230 C145 115 170 100 195 145 C220 190 235 170 245 90"/></g>
+<g transform="translate(570,340)"><text x="0" y="25" class="s">(C)</text><path class="a" d="M45 160H250M120 220V35"/><path class="c" d="M55 210 C95 190 110 120 118 35M126 35 C150 85 170 125 195 175 C220 205 235 170 245 90"/></g>
+<g transform="translate(840,340)"><text x="0" y="25" class="s">(D)</text><path class="a" d="M45 160H250M120 220V35"/><path class="c" d="M55 125 C90 115 110 85 118 35M126 35 C150 85 170 125 195 175 C220 205 235 170 245 90"/></g>
+</svg>
