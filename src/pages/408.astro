@@ -4,15 +4,15 @@ import ReaderLayout from '../layouts/ReaderLayout.astro';
 const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
 
-<ReaderLayout title="408 真题分类库 · 知间" description="2009–2026 年 408 计算机统考真题分类浏览、筛选与错题复盘。">
+<ReaderLayout title="408 真题 · 知间" description="2009–2026 年 408 计算机统考真题套卷与分类刷题。">
   <main class="practice408">
     <header class="practice408-header">
       <div class="practice408-headline">
         <a class="practice408-back" href={`${siteBase}/`}>← 返回知间</a>
         <div>
           <p class="practice408-kicker">408 · 计算机学科专业基础综合</p>
-          <h1>2009–2026 真题分类库</h1>
-          <p class="practice408-lead">按科目、知识点、年份和题型筛选。选择题可记录作答；大题可直接写自己的思路；错题、收藏和笔记只保存在当前浏览器。</p>
+          <h1>2009–2026 真题套卷 / 分类库</h1>
+          <p class="practice408-lead">默认按年份保留完整套卷，按原题号从第 1 题做到第 47 题；也可以切到“分类刷题”，再按科目、知识点、年份和题型筛选。选择题可记录作答，大题可写自己的思路；错题、收藏和笔记只保存在当前浏览器。</p>
         </div>
       </div>
       <div class="practice408-stats" aria-live="polite">
@@ -23,9 +23,14 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
       </div>
     </header>
 
-    <section class="practice408-toolbar" aria-label="真题筛选">
+    <section class="practice408-toolbar" aria-label="真题浏览方式与筛选">
+      <div class="practice408-view-switch" role="group" aria-label="浏览方式">
+        <button type="button" data-view-paper class="is-active">套卷模式</button>
+        <button type="button" data-view-category>分类刷题</button>
+        <span data-view-hint>按原题号完整浏览一整套真题</span>
+      </div>
       <div class="practice408-filters">
-        <label>
+        <label data-filter-advanced>
           <span>科目</span>
           <select data-filter-subject>
             <option value="">全部科目</option>
@@ -41,7 +46,7 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
             <option value="">2009–2026 全部年份</option>
           </select>
         </label>
-        <label>
+        <label data-filter-advanced>
           <span>题型</span>
           <select data-filter-type>
             <option value="">全部题型</option>
@@ -49,18 +54,18 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
             <option value="comprehensive">综合大题</option>
           </select>
         </label>
-        <label>
+        <label data-filter-advanced>
           <span>知识点</span>
           <select data-filter-section>
             <option value="">全部知识点</option>
           </select>
         </label>
-        <label class="practice408-search">
+        <label class="practice408-search" data-filter-advanced>
           <span>搜索</span>
           <input data-filter-search type="search" placeholder="题干 / 年份题号 / 知识点" autocomplete="off" />
         </label>
       </div>
-      <div class="practice408-modes">
+      <div class="practice408-modes" data-category-tools hidden>
         <button type="button" data-mode-big>只做大题</button>
         <button type="button" data-mode-wrong>只看错题</button>
         <button type="button" data-mode-favorite>只看收藏</button>
@@ -83,7 +88,7 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
           <h2 id="results-title">题目</h2>
           <p data-result-summary></p>
         </div>
-        <label class="practice408-page-size">
+        <label class="practice408-page-size" data-page-size-wrap hidden>
           <span>每页</span>
           <select data-page-size>
             <option value="10">10</option>
@@ -103,7 +108,7 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
     </section>
 
     <footer class="practice408-footer">
-      <p>建议刷法：先按“综合大题 + 单个知识点”连续做同类真题，再切到错题复盘。看到题目时，先说出“考点 + 第一刀 + 主流程”，再展开答案。</p>
+      <p>套卷模式用于完整模考与逐年复盘；分类刷题用于按“综合大题 + 单个知识点”连续训练。同一道题的作答、错题、收藏和笔记在两种模式之间共用。</p>
     </footer>
   </main>
 
@@ -129,6 +134,7 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
     const state = {
       questions: [],
       filtered: [],
+      viewMode: 'paper',
       page: 1,
       pageSize: 20,
       onlyWrong: false,
@@ -163,7 +169,14 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
       statTotal: document.querySelector('[data-stat-total]'),
       statVisible: document.querySelector('[data-stat-visible]'),
       statBig: document.querySelector('[data-stat-big]'),
-      statWrong: document.querySelector('[data-stat-wrong]')
+      statWrong: document.querySelector('[data-stat-wrong]'),
+      resultsTitle: document.querySelector('#results-title'),
+      paperButton: document.querySelector('[data-view-paper]'),
+      categoryButton: document.querySelector('[data-view-category]'),
+      viewHint: document.querySelector('[data-view-hint]'),
+      categoryTools: document.querySelector('[data-category-tools]'),
+      pageSizeWrap: document.querySelector('[data-page-size-wrap]'),
+      advancedFilters: [...document.querySelectorAll('[data-filter-advanced]')]
     };
 
     function readStorage() {
@@ -284,8 +297,20 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
 
     function applyFilters(resetPage = true) {
       if (resetPage) state.page = 1;
-      const subject = els.subject?.value || '';
       const year = Number(els.year?.value || 0);
+
+      if (state.viewMode === 'paper') {
+        const paperYear = year || 2026;
+        if (els.year && !year) els.year.value = String(paperYear);
+        state.filtered = state.questions
+          .filter((question) => question.year === paperYear)
+          .sort((a, b) => a.qIndex - b.qIndex || a.id - b.id);
+        render();
+        updateStats();
+        return;
+      }
+
+      const subject = els.subject?.value || '';
       const type = els.type?.value || '';
       const section = els.section?.value || '';
       const query = (els.search?.value || '').trim().toLocaleLowerCase('zh-CN');
@@ -312,6 +337,27 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
 
       render();
       updateStats();
+    }
+
+    function setViewMode(mode) {
+      state.viewMode = mode === 'category' ? 'category' : 'paper';
+      const paper = state.viewMode === 'paper';
+      els.paperButton?.classList.toggle('is-active', paper);
+      els.categoryButton?.classList.toggle('is-active', !paper);
+      if (els.viewHint) {
+        els.viewHint.textContent = paper
+          ? '按原题号完整浏览一整套真题'
+          : '按科目、知识点、年份和题型筛选';
+      }
+      els.advancedFilters.forEach((element) => { element.hidden = paper; });
+      if (els.categoryTools) els.categoryTools.hidden = paper;
+      if (els.pageSizeWrap) els.pageSizeWrap.hidden = paper;
+      if (paper && els.year && !els.year.value) els.year.value = '2026';
+      if (paper) {
+        state.onlyWrong = false;
+        state.onlyFavorite = false;
+      }
+      applyFilters();
     }
 
     function appendTextWithCode(target, value) {
@@ -496,12 +542,28 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
       return article;
     }
 
+    function appendPaperSection(title, subtitle = '') {
+      if (!els.list) return;
+      const heading = document.createElement('div');
+      heading.className = 'practice408-paper-section';
+      const h3 = document.createElement('h3');
+      h3.textContent = title;
+      heading.append(h3);
+      if (subtitle) {
+        const p = document.createElement('p');
+        p.textContent = subtitle;
+        heading.append(p);
+      }
+      els.list.append(heading);
+    }
+
     function render() {
       if (!els.list) return;
-      const totalPages = Math.max(1, Math.ceil(state.filtered.length / state.pageSize));
+      const paper = state.viewMode === 'paper';
+      const totalPages = paper ? 1 : Math.max(1, Math.ceil(state.filtered.length / state.pageSize));
       state.page = Math.min(state.page, totalPages);
       const start = (state.page - 1) * state.pageSize;
-      const pageItems = state.filtered.slice(start, start + state.pageSize);
+      const pageItems = paper ? state.filtered : state.filtered.slice(start, start + state.pageSize);
 
       els.list.replaceChildren();
       if (!pageItems.length) {
@@ -509,20 +571,43 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
         empty.className = 'practice408-empty';
         empty.textContent = state.questions.length ? '没有符合当前条件的题目。' : '题库尚未加载。';
         els.list.append(empty);
+      } else if (paper) {
+        let insertedChoice = false;
+        let insertedBig = false;
+        pageItems.forEach((question) => {
+          if (question.qIndex <= 40 && !insertedChoice) {
+            appendPaperSection('一、选择题', '第 1–40 题，按原卷题号顺序');
+            insertedChoice = true;
+          }
+          if (question.qIndex >= 41 && !insertedBig) {
+            appendPaperSection('二、综合应用题', '第 41–47 题，保留原卷完整大题顺序');
+            insertedBig = true;
+          }
+          els.list.append(renderQuestion(question));
+        });
       } else {
         pageItems.forEach((question) => els.list.append(renderQuestion(question)));
       }
 
       if (els.summary) {
-        const mode = [
-          state.onlyWrong ? '错题' : '',
-          state.onlyFavorite ? '收藏' : ''
-        ].filter(Boolean).join(' + ');
-        els.summary.textContent = `共 ${state.filtered.length} 题${mode ? ` · ${mode}模式` : ''}`;
+        if (paper) {
+          const paperYear = Number(els.year?.value || 2026);
+          const choiceCount = state.filtered.filter((question) => question.qIndex <= 40).length;
+          const bigCount = state.filtered.filter((question) => question.qIndex >= 41).length;
+          els.summary.textContent = `${paperYear} 年完整套卷 · 共 ${state.filtered.length} 题 · 选择题 ${choiceCount} · 综合题 ${bigCount}`;
+          if (els.resultsTitle) els.resultsTitle.textContent = `${paperYear} 年 408 真题套卷`;
+        } else {
+          const mode = [
+            state.onlyWrong ? '错题' : '',
+            state.onlyFavorite ? '收藏' : ''
+          ].filter(Boolean).join(' + ');
+          els.summary.textContent = `共 ${state.filtered.length} 题${mode ? ` · ${mode}模式` : ''}`;
+          if (els.resultsTitle) els.resultsTitle.textContent = '分类刷题';
+        }
       }
 
       if (els.pagination && els.pageLabel && els.prev && els.next) {
-        els.pagination.hidden = state.filtered.length <= state.pageSize;
+        els.pagination.hidden = paper || state.filtered.length <= state.pageSize;
         els.pageLabel.textContent = `第 ${state.page} / ${totalPages} 页`;
         els.prev.disabled = state.page <= 1;
         els.next.disabled = state.page >= totalPages;
@@ -532,6 +617,7 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
     async function loadQuestions() {
       readStorage();
       populateYears();
+      if (els.year) els.year.value = '2026';
       updateStats();
 
       try {
@@ -555,13 +641,16 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
             ? '已载入 2009–2026 共 846 道统考真题。'
             : `已载入 ${state.questions.length} 道题；来源数据数量与预期 846 道不一致，请留意上游更新。`;
         }
-        applyFilters();
+        setViewMode('paper');
       } catch (error) {
         console.error(error);
         if (els.status) els.status.textContent = '真题数据加载失败。请检查网络后刷新页面；本站会自动尝试两个公开数据地址。';
         render();
       }
     }
+
+    els.paperButton?.addEventListener('click', () => setViewMode('paper'));
+    els.categoryButton?.addEventListener('click', () => setViewMode('category'));
 
     els.subject?.addEventListener('change', () => {
       populateSections();
@@ -578,17 +667,20 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
     });
 
     document.querySelector('[data-mode-big]')?.addEventListener('click', () => {
+      if (state.viewMode !== 'category') setViewMode('category');
       if (els.type) els.type.value = 'comprehensive';
       state.onlyWrong = false;
       state.onlyFavorite = false;
       applyFilters();
     });
     document.querySelector('[data-mode-wrong]')?.addEventListener('click', () => {
+      if (state.viewMode !== 'category') setViewMode('category');
       state.onlyWrong = !state.onlyWrong;
       if (state.onlyWrong) state.onlyFavorite = false;
       applyFilters();
     });
     document.querySelector('[data-mode-favorite]')?.addEventListener('click', () => {
+      if (state.viewMode !== 'category') setViewMode('category');
       state.onlyFavorite = !state.onlyFavorite;
       if (state.onlyFavorite) state.onlyWrong = false;
       applyFilters();
@@ -657,6 +749,10 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
     .practice408-stats span { color: var(--p408-muted); font-size: 11px; }
 
     .practice408-toolbar { position: sticky; top: 0; z-index: 20; margin: 20px 0; padding: 14px; border: 1px solid var(--p408-line); background: rgba(255,255,255,.96); backdrop-filter: blur(10px); }
+    .practice408-view-switch { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--p408-line); }
+    .practice408-view-switch button { min-height: 38px; padding: 0 16px; border: 1px solid var(--p408-line); border-radius: 5px; background: #fff; color: var(--p408-ink); font-size: 13px; font-weight: 700; cursor: pointer; }
+    .practice408-view-switch button.is-active { border-color: var(--p408-accent); background: var(--p408-accent); color: #fff; }
+    .practice408-view-switch span { margin-left: auto; color: var(--p408-muted); font-size: 12px; }
     .practice408-filters { display: grid; grid-template-columns: 1fr .9fr .9fr 1.3fr 1.6fr; gap: 10px; }
     .practice408-filters label, .practice408-page-size { display: grid; gap: 5px; color: var(--p408-muted); font-size: 11px; font-weight: 650; }
     .practice408-filters select, .practice408-filters input, .practice408-page-size select {
@@ -712,6 +808,10 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
     .practice408-related { display: inline-block; margin-top: 10px; color: var(--p408-accent) !important; }
     .practice408-empty { padding: 54px 20px; border: 1px dashed var(--p408-line); color: var(--p408-muted); text-align: center; }
 
+    .practice408-paper-section { margin: 26px 0 6px; padding: 14px 16px; border-left: 4px solid var(--p408-accent); background: var(--p408-soft); }
+    .practice408-paper-section:first-child { margin-top: 0; }
+    .practice408-paper-section h3 { margin: 0; font-size: 18px; }
+    .practice408-paper-section p { margin: 4px 0 0; color: var(--p408-muted); font-size: 12px; }
     .practice408-pagination { display: flex; justify-content: center; align-items: center; gap: 14px; padding: 8px 0 22px; }
     .practice408-pagination button:disabled { opacity: .4; cursor: default; }
     .practice408-pagination span { color: var(--p408-muted); font-size: 12px; font-variant-numeric: tabular-nums; }
@@ -719,6 +819,8 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
     .practice408-footer p { margin: 0; }
 
     @media (max-width: 900px) {
+      .practice408-view-switch { align-items: stretch; flex-wrap: wrap; }
+      .practice408-view-switch span { width: 100%; margin-left: 0; }
       .practice408-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .practice408-search { grid-column: 1 / -1; }
       .practice408-status { grid-template-columns: 1fr; }
@@ -744,7 +846,7 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
         color: var(--p408-ink);
       }
       .practice408-stats > div, .practice408-toolbar, .practice408-filters select, .practice408-filters input,
-      .practice408-page-size select, .practice408-card, .practice408-modes button, .practice408-card-actions button,
+      .practice408-page-size select, .practice408-card, .practice408-modes button, .practice408-view-switch button, .practice408-card-actions button,
       .practice408-pagination button, .practice408-option, .practice408-note textarea { background: #171a18; color: var(--p408-ink); }
       .practice408-toolbar { background: rgba(23,26,24,.96); }
       .practice408-option.selected, .practice408-option.correct { background: #1d2a20; }
