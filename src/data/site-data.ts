@@ -1,1 +1,1 @@
-export const projectRepository = 'https://github.com/dongyu-will/zhijian';
+export const projectRepository = 'https://github.com/gaoyuzhan/zhenti';
