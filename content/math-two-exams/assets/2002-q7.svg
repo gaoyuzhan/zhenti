@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 560" role="img" aria-labelledby="t d">
+<title id="t">2002 数学二第7题闸门示意图</title><desc id="d">闸门上部为矩形 ABCD，下部为二次抛物线与线段 AB 围成，竖直直线 l 为对称轴，h 为 AB 到抛物线最低点的距离。</desc>
+<style>text{font-family:serif;fill:#111}.a{stroke:#111;stroke-width:4;fill:none}.dash{stroke:#111;stroke-width:2;stroke-dasharray:9 8}.s{font-size:26px}</style>
+<path class="a" d="M120 90H440V320H120Z"/>
+<path class="a" d="M120 320 Q280 530 440 320"/>
+<path class="dash" d="M120 320H440"/>
+<path class="a" d="M280 55V500"/>
+<path d="M265 350H295M280 350V485" class="dash"/>
+<text x="88" y="335" class="s">A</text><text x="445" y="335" class="s">B</text>
+<text x="445" y="105" class="s">C</text><text x="88" y="105" class="s">D</text>
+<text x="292" y="75" class="s">l</text><text x="298" y="425" class="s">h</text>
+</svg>
