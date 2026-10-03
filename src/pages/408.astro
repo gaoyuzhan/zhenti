@@ -6,12 +6,31 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
 
 <ReaderLayout title="408 真题 · 知间" description="2009–2026 年 408 计算机统考真题套卷与分类刷题。">
   <main class="practice408">
-    <header class="practice408-header">
+    <div class="practice408-shell">
+      <aside class="practice408-sidebar" aria-label="408 真题目录">
+        <div class="practice408-sidebar-inner">
+          <h2>目录</h2>
+          <a class="practice408-sidebar-link" href="#practice408-intro">资料简介 <span>总览</span></a>
+          <div class="practice408-sidebar-group">
+            <button type="button" class="practice408-sidebar-heading is-active" data-side-paper>
+              <span>正文目录</span><span>目录</span>
+            </button>
+            <nav class="practice408-year-nav" data-year-nav aria-label="历年 408 真题"></nav>
+          </div>
+          <div class="practice408-sidebar-group">
+            <button type="button" class="practice408-sidebar-heading" data-side-category>
+              <span>真题分类</span><span>专项</span>
+            </button>
+          </div>
+        </div>
+      </aside>
+      <div class="practice408-content">
+    <header class="practice408-header" id="practice408-intro">
       <div class="practice408-headline">
         <a class="practice408-back" href={`${siteBase}/`}>← 返回知间</a>
         <div>
           <p class="practice408-kicker">408 · 计算机学科专业基础综合</p>
-          <h1>2009–2026 真题套卷 / 分类库</h1>
+          <h1 data-main-title>2009–2026 真题套卷 / 分类库</h1>
           <p class="practice408-lead">默认按年份保留完整套卷，按原题号从第 1 题做到第 47 题；也可以切到“分类刷题”，再按科目、知识点、年份和题型筛选。选择题可记录作答，大题可写自己的思路；错题、收藏和笔记只保存在当前浏览器。</p>
         </div>
       </div>
@@ -110,6 +129,8 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
     <footer class="practice408-footer">
       <p>套卷模式用于完整模考与逐年复盘；分类刷题用于按“综合大题 + 单个知识点”连续训练。同一道题的作答、错题、收藏和笔记在两种模式之间共用。</p>
     </footer>
+      </div>
+    </div>
   </main>
 
   <script>
@@ -176,7 +197,12 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
       viewHint: document.querySelector('[data-view-hint]'),
       categoryTools: document.querySelector('[data-category-tools]'),
       pageSizeWrap: document.querySelector('[data-page-size-wrap]'),
-      advancedFilters: [...document.querySelectorAll('[data-filter-advanced]')]
+      advancedFilters: [...document.querySelectorAll('[data-filter-advanced]')],
+      root: document.querySelector('.practice408'),
+      mainTitle: document.querySelector('[data-main-title]'),
+      yearNav: document.querySelector('[data-year-nav]'),
+      sidePaper: document.querySelector('[data-side-paper]'),
+      sideCategory: document.querySelector('[data-side-category]')
     };
 
     function readStorage() {
@@ -247,7 +273,33 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
         option.value = String(year);
         option.textContent = `${year} 年`;
         els.year?.append(option);
+
+        if (els.yearNav) {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'practice408-year-link';
+          button.dataset.year = String(year);
+          button.textContent = String(year);
+          button.addEventListener('click', () => {
+            if (els.year) els.year.value = String(year);
+            setViewMode('paper');
+            syncSidebar();
+            document.querySelector('.practice408-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          });
+          els.yearNav.append(button);
+        }
       }
+    }
+
+    function syncSidebar() {
+      const year = String(els.year?.value || '2026');
+      els.yearNav?.querySelectorAll('[data-year]').forEach((button) => {
+        button.classList.toggle('is-active', button.dataset.year === year && state.viewMode === 'paper');
+      });
+      els.sidePaper?.classList.toggle('is-active', state.viewMode === 'paper');
+      els.sideCategory?.classList.toggle('is-active', state.viewMode === 'category');
+      els.root?.classList.toggle('is-paper', state.viewMode === 'paper');
+      els.root?.classList.toggle('is-category', state.viewMode === 'category');
     }
 
     function populateSections() {
@@ -357,6 +409,7 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
         state.onlyWrong = false;
         state.onlyFavorite = false;
       }
+      syncSidebar();
       applyFilters();
     }
 
@@ -400,6 +453,13 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
       const article = document.createElement('article');
       article.className = 'practice408-card';
       article.id = `q-${question.id}`;
+
+      if (state.viewMode === 'paper') {
+        const paperTitle = document.createElement('h3');
+        paperTitle.className = 'practice408-question-number';
+        paperTitle.textContent = `第 ${question.qIndex} 题`;
+        article.append(paperTitle);
+      }
 
       const header = document.createElement('header');
       header.className = 'practice408-card-head';
@@ -595,7 +655,8 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
           const choiceCount = state.filtered.filter((question) => question.qIndex <= 40).length;
           const bigCount = state.filtered.filter((question) => question.qIndex >= 41).length;
           els.summary.textContent = `${paperYear} 年完整套卷 · 共 ${state.filtered.length} 题 · 选择题 ${choiceCount} · 综合题 ${bigCount}`;
-          if (els.resultsTitle) els.resultsTitle.textContent = `${paperYear} 年 408 真题套卷`;
+          if (els.resultsTitle) els.resultsTitle.textContent = `${paperYear} 年全国硕士研究生招生考试 408 真题`;
+          if (els.mainTitle) els.mainTitle.textContent = `${paperYear} 年全国硕士研究生招生考试 408 真题`;
         } else {
           const mode = [
             state.onlyWrong ? '错题' : '',
@@ -603,6 +664,7 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
           ].filter(Boolean).join(' + ');
           els.summary.textContent = `共 ${state.filtered.length} 题${mode ? ` · ${mode}模式` : ''}`;
           if (els.resultsTitle) els.resultsTitle.textContent = '分类刷题';
+          if (els.mainTitle) els.mainTitle.textContent = '2009–2026 408 真题分类库';
         }
       }
 
@@ -651,12 +713,17 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
 
     els.paperButton?.addEventListener('click', () => setViewMode('paper'));
     els.categoryButton?.addEventListener('click', () => setViewMode('category'));
+    els.sidePaper?.addEventListener('click', () => setViewMode('paper'));
+    els.sideCategory?.addEventListener('click', () => setViewMode('category'));
 
     els.subject?.addEventListener('change', () => {
       populateSections();
       applyFilters();
     });
-    els.year?.addEventListener('change', () => applyFilters());
+    els.year?.addEventListener('change', () => {
+      syncSidebar();
+      applyFilters();
+    });
     els.type?.addEventListener('change', () => applyFilters());
     els.section?.addEventListener('change', () => applyFilters());
     els.search?.addEventListener('input', () => applyFilters());
@@ -732,6 +799,19 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
       font-family: 'Noto Sans SC Variable', 'PingFang SC', system-ui, sans-serif;
     }
     .practice408 a { color: inherit; text-underline-offset: 4px; }
+    .practice408-shell { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 34px; align-items: start; }
+    .practice408-content { min-width: 0; }
+    .practice408-sidebar { position: sticky; top: 0; height: 100vh; border-right: 1px solid var(--p408-line); }
+    .practice408-sidebar-inner { height: 100%; overflow-y: auto; padding: 24px 20px 36px 0; }
+    .practice408-sidebar h2 { margin: 0 0 26px; font-size: 20px; }
+    .practice408-sidebar-link, .practice408-sidebar-heading { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 8px; border: 0; background: transparent; color: var(--p408-ink); text-decoration: none; font-size: 13px; font-weight: 700; cursor: pointer; }
+    .practice408-sidebar-link span, .practice408-sidebar-heading span:last-child { color: var(--p408-muted); font-size: 11px; font-weight: 600; }
+    .practice408-sidebar-group { margin-top: 16px; }
+    .practice408-sidebar-heading.is-active { color: var(--p408-accent); }
+    .practice408-year-nav { display: grid; gap: 2px; margin-top: 4px; }
+    .practice408-year-link { width: 100%; min-height: 36px; padding: 0 12px; border: 0; border-radius: 6px; background: transparent; color: var(--p408-muted); text-align: left; font-size: 13px; cursor: pointer; }
+    .practice408-year-link:hover { background: var(--p408-soft); color: var(--p408-ink); }
+    .practice408-year-link.is-active { background: var(--p408-soft); color: var(--p408-ink); font-weight: 800; }
     .practice408 button, .practice408 select, .practice408 input, .practice408 textarea { font: inherit; }
     .practice408 button:focus-visible, .practice408 a:focus-visible, .practice408 select:focus-visible,
     .practice408 input:focus-visible, .practice408 textarea:focus-visible { outline: 2px solid var(--p408-accent); outline-offset: 2px; }
@@ -749,6 +829,11 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
     .practice408-stats span { color: var(--p408-muted); font-size: 11px; }
 
     .practice408-toolbar { position: sticky; top: 0; z-index: 20; margin: 20px 0; padding: 14px; border: 1px solid var(--p408-line); background: rgba(255,255,255,.96); backdrop-filter: blur(10px); }
+    .practice408.is-paper .practice408-toolbar { display: none; }
+    .practice408.is-paper .practice408-stats, .practice408.is-paper .practice408-lead, .practice408.is-paper .practice408-status { display: none; }
+    .practice408.is-paper .practice408-header { padding: 28px 0 14px; }
+    .practice408.is-paper .practice408-header h1 { font-size: clamp(27px, 3.4vw, 40px); letter-spacing: -.02em; }
+    .practice408.is-paper .practice408-kicker { margin-bottom: 6px; }
     .practice408-view-switch { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--p408-line); }
     .practice408-view-switch button { min-height: 38px; padding: 0 16px; border: 1px solid var(--p408-line); border-radius: 5px; background: #fff; color: var(--p408-ink); font-size: 13px; font-weight: 700; cursor: pointer; }
     .practice408-view-switch button.is-active { border-color: var(--p408-accent); background: var(--p408-accent); color: #fff; }
@@ -781,6 +866,20 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
 
     .practice408-list { display: grid; gap: 14px; padding: 16px 0; }
     .practice408-card { padding: 18px 20px; border: 1px solid var(--p408-line); background: #fff; }
+    .practice408-question-number { margin: 0 0 8px; font-size: 18px; }
+    .practice408.is-paper .practice408-list { display: block; padding-top: 4px; }
+    .practice408.is-paper .practice408-card { padding: 18px 0 22px; border: 0; border-bottom: 1px solid var(--p408-line); background: transparent; }
+    .practice408.is-paper .practice408-card-head { padding: 0 0 4px; border-bottom: 0; }
+    .practice408.is-paper .practice408-badges { opacity: .72; }
+    .practice408.is-paper .practice408-badge { min-height: 22px; padding: 0 6px; border: 0; border-radius: 0; font-size: 10px; }
+    .practice408.is-paper .practice408-badge.source { display: none; }
+    .practice408.is-paper .practice408-stem { padding: 10px 0 8px; font-size: 16px; line-height: 1.85; }
+    .practice408.is-paper .practice408-options { gap: 2px; margin-top: 2px; }
+    .practice408.is-paper .practice408-option { border: 0; padding: 8px 0; border-radius: 0; background: transparent; }
+    .practice408.is-paper .practice408-option:hover { background: var(--p408-soft); }
+    .practice408.is-paper .practice408-option.selected,
+    .practice408.is-paper .practice408-option.correct,
+    .practice408.is-paper .practice408-option.wrong { padding-left: 8px; }
     .practice408-card-head { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; padding-bottom: 12px; border-bottom: 1px solid var(--p408-line); }
     .practice408-badges { display: flex; flex-wrap: wrap; gap: 6px; }
     .practice408-badge { display: inline-flex; align-items: center; min-height: 25px; padding: 0 8px; border: 1px solid var(--p408-line); border-radius: 999px; color: var(--p408-muted); font-size: 11px; line-height: 1.2; }
@@ -809,6 +908,7 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
     .practice408-empty { padding: 54px 20px; border: 1px dashed var(--p408-line); color: var(--p408-muted); text-align: center; }
 
     .practice408-paper-section { margin: 26px 0 6px; padding: 14px 16px; border-left: 4px solid var(--p408-accent); background: var(--p408-soft); }
+    .practice408.is-paper .practice408-paper-section { margin: 28px 0 8px; padding: 14px 0 10px; border: 0; border-bottom: 1px solid var(--p408-line); background: transparent; }
     .practice408-paper-section:first-child { margin-top: 0; }
     .practice408-paper-section h3 { margin: 0; font-size: 18px; }
     .practice408-paper-section p { margin: 4px 0 0; color: var(--p408-muted); font-size: 12px; }
@@ -819,6 +919,8 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
     .practice408-footer p { margin: 0; }
 
     @media (max-width: 900px) {
+      .practice408-shell { grid-template-columns: 170px minmax(0, 1fr); gap: 20px; }
+      .practice408-sidebar-inner { padding-right: 12px; }
       .practice408-view-switch { align-items: stretch; flex-wrap: wrap; }
       .practice408-view-switch span { width: 100%; margin-left: 0; }
       .practice408-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -828,6 +930,14 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
     }
     @media (max-width: 640px) {
       .practice408 { width: min(100% - 20px, 1180px); padding-top: 14px; }
+      .practice408-shell { display: block; }
+      .practice408-sidebar { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--p408-line); }
+      .practice408-sidebar-inner { padding: 4px 0 12px; overflow: visible; }
+      .practice408-sidebar h2, .practice408-sidebar-link { display: none; }
+      .practice408-sidebar-group { margin-top: 0; }
+      .practice408-sidebar-heading { padding-left: 0; }
+      .practice408-year-nav { display: flex; overflow-x: auto; gap: 4px; padding-bottom: 6px; }
+      .practice408-year-link { flex: 0 0 auto; width: auto; padding: 0 10px; }
       .practice408-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .practice408-toolbar { top: 0; margin: 12px 0; padding: 10px; }
       .practice408-filters { grid-template-columns: 1fr; }
@@ -847,6 +957,7 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
       }
       .practice408-stats > div, .practice408-toolbar, .practice408-filters select, .practice408-filters input,
       .practice408-page-size select, .practice408-card, .practice408-modes button, .practice408-view-switch button, .practice408-card-actions button,
+      .practice408-year-link,
       .practice408-pagination button, .practice408-option, .practice408-note textarea { background: #171a18; color: var(--p408-ink); }
       .practice408-toolbar { background: rgba(23,26,24,.96); }
       .practice408-option.selected, .practice408-option.correct { background: #1d2a20; }
