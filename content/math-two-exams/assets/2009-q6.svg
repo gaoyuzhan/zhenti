@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1120" role="img" aria-labelledby="title desc">
+<title id="title">2009 数学二第6题函数图形与四个选项</title>
+<desc id="desc">根据原卷图形复绘的示意图，用于第6题。</desc>
+<style>
+  text{font-family:serif;fill:#111} .axis{stroke:#111;stroke-width:3;fill:none}
+  .curve{stroke:#111;stroke-width:4;fill:none} .dash{stroke:#111;stroke-width:2;stroke-dasharray:8 8}
+  .open{fill:white;stroke:#111;stroke-width:3}.label{font-size:26px}.small{font-size:22px}
+</style>
+<text x="40" y="42" class="label">原函数 y=f(x)</text>
+<g transform="translate(45,60)">
+  <path class="axis" d="M40 230H520 M205 300V25"/>
+  <path d="M520 230l-16-9v18zM205 25l-9 16h18z" fill="#111"/>
+  <path class="curve" d="M80 115H205"/>
+  <circle class="open" cx="205" cy="115" r="8"/>
+  <path class="curve" d="M205 275 C255 265 305 215 355 110"/>
+  <path class="dash" d="M355 110V230"/>
+  <circle class="open" cx="355" cy="230" r="9"/>
+  <path class="curve" d="M355 230H475"/>
+  <text x="75" y="256" class="small">−1</text><text x="196" y="256" class="small">0</text>
+  <text x="273" y="256" class="small">1</text><text x="347" y="256" class="small">2</text><text x="445" y="256" class="small">3</text>
+  <text x="180" y="120" class="small">1</text><text x="175" y="284" class="small">−1</text>
+  <text x="525" y="245" class="small">x</text><text x="145" y="45" class="small">f(x)</text>
+</g>
+<text x="40" y="400" class="label">F(x)=∫₀ˣ f(t)dt 的图形选项</text>
+
+<g transform="translate(35,425)">
+ <text x="0" y="25" class="label">(A)</text>
+ <path class="axis" d="M55 185H520 M180 260V35"/><path d="M520 185l-16-9v18zM180 35l-9 16h18z" fill="#111"/>
+ <path class="curve" d="M85 90L180 185 C235 235 300 235 350 105 L430 105"/>
+ <text x="160" y="210" class="small">0</text><text x="260" y="210" class="small">1</text><text x="345" y="210" class="small">2</text>
+</g>
+<g transform="translate(620,425)">
+ <text x="0" y="25" class="label">(B)</text>
+ <path class="axis" d="M55 185H520 M180 260V35"/><path d="M520 185l-16-9v18zM180 35l-9 16h18z" fill="#111"/>
+ <path class="curve" d="M90 235L180 185 C215 310 290 300 350 55"/>
+ <path class="dash" d="M350 55V185"/><circle class="open" cx="350" cy="185" r="8"/><path class="curve" d="M350 110H430"/>
+ <text x="160" y="210" class="small">0</text><text x="260" y="210" class="small">1</text><text x="345" y="210" class="small">2</text>
+</g>
+<g transform="translate(35,760)">
+ <text x="0" y="25" class="label">(C)</text>
+ <path class="axis" d="M55 185H520 M180 260V35"/><path d="M520 185l-16-9v18zM180 35l-9 16h18z" fill="#111"/>
+ <path class="curve" d="M90 185L180 90 C245 150 305 160 350 65 L430 65"/>
+ <text x="160" y="210" class="small">0</text><text x="260" y="210" class="small">1</text><text x="345" y="210" class="small">2</text>
+</g>
+<g transform="translate(620,760)">
+ <text x="0" y="25" class="label">(D)</text>
+ <path class="axis" d="M55 185H520 M180 260V35"/><path d="M520 185l-16-9v18zM180 35l-9 16h18z" fill="#111"/>
+ <path class="curve" d="M90 235L180 185 C235 235 300 245 350 105 L430 105"/>
+ <text x="160" y="210" class="small">0</text><text x="260" y="210" class="small">1</text><text x="345" y="210" class="small">2</text>
+</g>
+</svg>
