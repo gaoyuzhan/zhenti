@@ -7,7 +7,9 @@ const expected = ['math-one-exams', 'math-two-exams'];
 const output = resolve(process.argv[2] || 'dist');
 const catalog = JSON.parse(readFileSync(join(output, 'catalog-index.json'), 'utf8'));
 assert.deepEqual(catalog.map(book => book.slug).sort(), expected, 'Unexpected launch catalog');
-assert.ok(catalog.every(book => book.chapters === 17), 'Each collection must contain 17 exams');
+const chapterCounts = Object.fromEntries(catalog.map(book => [book.slug, book.chapters]));
+assert.equal(chapterCounts['math-one-exams'], 17, 'Math I must contain 17 exams');
+assert.equal(chapterCounts['math-two-exams'], 27, 'Math II must contain 27 exams');
 assert.deepEqual(readdirSync(join(output, 'books')).sort(), expected, 'Unexpected reader routes');
 assert.deepEqual(readdirSync(join(output, 'book-assets')).sort(), expected, 'Stale book assets');
 
@@ -29,7 +31,9 @@ for (const book of catalog) {
   assert.ok(authoredFiles.every(path => ['.md', '.jpg'].includes(extname(path))), 'Only approved Markdown and figures belong in this launch');
   const imageReferences = new Set();
   const years = readdirSync(join(source, 'chapters')).sort();
-  assert.deepEqual(years, Array.from({ length: 17 }, (_, i) => `${2010 + i}.md`));
+  const expectedStart = book.slug === 'math-two-exams' ? 2000 : 2010;
+  const expectedCount = book.slug === 'math-two-exams' ? 27 : 17;
+  assert.deepEqual(years, Array.from({ length: expectedCount }, (_, i) => `${expectedStart + i}.md`));
   for (const name of years) {
     const markdown = readFileSync(join(source, 'chapters', name), 'utf8');
     const html = readFileSync(join(output, 'books', book.slug, 'chapters', name.replace('.md', ''), 'index.html'), 'utf8');
@@ -52,4 +56,4 @@ for (const book of catalog) {
 }
 assert.equal(figures, 7, 'Expected seven approved question figures');
 assert.ok(!filesUnder(output).some(path => extname(path).toLowerCase() === '.pdf'), 'PDF found in deployment output');
-console.log(`Release valid: ${catalog.length} collections, 34 exams, ${figures} figures, no PDFs or demo routes`);
+console.log(`Release valid: ${catalog.length} collections, 44 exams, ${figures} figures, no PDFs or demo routes`);

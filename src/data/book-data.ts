@@ -22,9 +22,9 @@ const includedBooks: BookMetadata[] = [
     slug: 'math-two-exams',
     shortTitle: '数学二',
     contentUnit: '份试卷',
-    title: '2010–2026 年数学二真题套卷',
+    title: '2000–2026 年数学二真题套卷',
     author: '本地资源',
-    description: '2010–2026 年数学二真题，共 17 份试卷。',
+    description: '2000–2026 年数学二真题，共 27 份试卷。',
     status: 'active'
   }
 ];
