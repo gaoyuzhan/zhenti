@@ -1027,8 +1027,7 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
       .practice408-card-actions { flex-wrap: wrap; }
       .practice408-results-head { align-items: center; }
     }
-    @media (prefers-color-scheme: dark) {
-      .practice408 {
+    :root[data-theme='dark'] .practice408 {
         --p408-ink: #f1f3f1;
         --p408-muted: #a6ada7;
         --p408-line: #3b413c;
