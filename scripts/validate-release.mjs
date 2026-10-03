@@ -28,7 +28,7 @@ for (const book of catalog) {
   const assets = join(output, 'book-assets', book.slug);
   const authoredFiles = filesUnder(source).map(path => relative(source, path)).sort();
   assert.deepEqual(filesUnder(assets).map(path => relative(assets, path)).sort(), authoredFiles, `Asset mismatch: ${book.slug}`);
-  assert.ok(authoredFiles.every(path => ['.md', '.jpg'].includes(extname(path))), 'Only approved Markdown and figures belong in this launch');
+  assert.ok(authoredFiles.every(path => ['.md', '.jpg', '.svg'].includes(extname(path))), 'Only approved Markdown and figures belong in this launch');
   const imageReferences = new Set();
   const years = readdirSync(join(source, 'chapters')).sort();
   const expectedStart = book.slug === 'math-two-exams' ? 2000 : 2010;
@@ -54,6 +54,6 @@ for (const book of catalog) {
   }
   assert.deepEqual(authoredFiles.filter(path => extname(path) === '.jpg').sort(), [...imageReferences].sort(), 'Unreferenced images must stay local');
 }
-assert.equal(figures, 7, 'Expected seven approved question figures');
+assert.equal(figures, 8, 'Expected eight approved question figures');
 assert.ok(!filesUnder(output).some(path => extname(path).toLowerCase() === '.pdf'), 'PDF found in deployment output');
 console.log(`Release valid: ${catalog.length} collections, 44 exams, ${figures} figures, no PDFs or demo routes`);
