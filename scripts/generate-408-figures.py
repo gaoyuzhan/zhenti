@@ -29,6 +29,32 @@ VISUAL_RE = re.compile(
     r"拓扑|结构图|示意图|波形|时序图|框图|树如|二叉树如|网络如)"
 )
 
+EVERFLOW_2026_BASE = (
+    "https://raw.githubusercontent.com/EverflowCN/everflow-paper/main/"
+    "site/data/zhenti/assets/2026"
+)
+EVERFLOW_2026 = {
+    28: "q28-three-level-page-address.svg",
+    36: "q36-vlan-switch.svg",
+    37: "q37-route-topology.svg",
+    43: "q43-instruction-formats.svg",
+    44: "q44-datapath.svg",
+    46: "q46-directory-inode.svg",
+}
+
+Q26_SVG = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 210" role="img" aria-labelledby="t d">
+<title id="t">2026 408 第26题资源访问操作</title>
+<desc id="d">依次执行 wait(S)、访问资源、signal(S)。</desc>
+<style>text{font-family:Arial,'Noto Sans SC',sans-serif;fill:#111}.box{fill:#fff;stroke:#111;stroke-width:2}.line{stroke:#111;stroke-width:2}</style>
+<rect class="box" x="90" y="28" width="240" height="150"/>
+<line class="line" x1="90" y1="78" x2="330" y2="78"/>
+<line class="line" x1="90" y1="128" x2="330" y2="128"/>
+<text x="210" y="62" text-anchor="middle" font-size="28">wait(S)</text>
+<text x="210" y="112" text-anchor="middle" font-size="28">访问资源</text>
+<text x="210" y="162" text-anchor="middle" font-size="28">signal(S)</text>
+</svg>
+"""
+
 
 def download(url: str) -> bytes:
     request = urllib.request.Request(url, headers={"User-Agent": "zhenti-408-assets/1.0"})
@@ -81,6 +107,19 @@ def main() -> None:
                 manifest[f"{year}-{number}"] = f"{year}/{number}.webp"
         finally:
             doc.close()
+
+    # 2026 is not yet part of WeatherCore's crop index. Pull the verified
+    # public vector redraws maintained by Everflow and add a faithful redraw for Q26.
+    q26_path = OUT / "2026" / "26.svg"
+    q26_path.parent.mkdir(parents=True, exist_ok=True)
+    q26_path.write_text(Q26_SVG, encoding="utf-8")
+    manifest["2026-26"] = "2026/26.svg"
+
+    for number, filename in EVERFLOW_2026.items():
+        destination = OUT / "2026" / f"{number}.svg"
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_bytes(download(f"{EVERFLOW_2026_BASE}/{filename}"))
+        manifest[f"2026-{number}"] = f"2026/{number}.svg"
 
     (OUT / "manifest.json").write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",
