@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 360" role="img" aria-labelledby="t d">
+<title id="t">2007 数学二第3题函数图形</title><desc id="d">连续函数在四个区间由直径为1或2的上、下半圆组成。</desc>
+<style>text{font-family:serif;fill:#111}.a{stroke:#111;stroke-width:3;fill:none}.c{stroke:#111;stroke-width:4;fill:none}.s{font-size:26px}</style>
+<path class="a" d="M55 190H750M400 330V35"/><path d="M750 190l-16-9v18zM400 35l-9 16h18z" fill="#111"/>
+<path class="c" d="M100 190 A50 50 0 0 1 200 190"/>
+<path class="c" d="M200 190 A100 100 0 0 0 400 190"/>
+<path class="c" d="M400 190 A100 100 0 0 1 600 190"/>
+<path class="c" d="M600 190 A50 50 0 0 0 700 190"/>
+<g class="s">
+<text x="90" y="220">−3</text><text x="188" y="220">−2</text><text x="292" y="220">−1</text>
+<text x="390" y="220">0</text><text x="494" y="220">1</text><text x="590" y="220">2</text><text x="692" y="220">3</text>
+<text x="755" y="205">x</text><text x="375" y="55">y</text>
+</g></svg>
