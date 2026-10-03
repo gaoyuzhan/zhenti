@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 210" role="img" aria-labelledby="t d">
+<title id="t">2026 408 第26题资源访问操作</title>
+<desc id="d">依次执行 wait(S)、访问资源、signal(S)。</desc>
+<style>text{font-family:Arial,'Noto Sans SC',sans-serif;fill:#111}.box{fill:#fff;stroke:#111;stroke-width:2}.line{stroke:#111;stroke-width:2}</style>
+<rect class="box" x="90" y="28" width="240" height="150"/>
+<line class="line" x1="90" y1="78" x2="330" y2="78"/>
+<line class="line" x1="90" y1="128" x2="330" y2="128"/>
+<text x="210" y="62" text-anchor="middle" font-size="28">wait(S)</text>
+<text x="210" y="112" text-anchor="middle" font-size="28">访问资源</text>
+<text x="210" y="162" text-anchor="middle" font-size="28">signal(S)</text>
+</svg>
