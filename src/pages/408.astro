@@ -266,7 +266,7 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
       const sourceAnswer = String(question.answer || '').trim().toUpperCase();
       const verifiedAnswer = getVerified408ChoiceAnswer(year, qIndex);
       const answerVerified = Boolean(verifiedAnswer);
-      const sourceMatchesVerified = !verifiedAnswer || !sourceAnswer || sourceAnswer === verifiedAnswer;
+      const sourceMatchesVerified = Boolean(verifiedAnswer && sourceAnswer === verifiedAnswer);
       const isComprehensive = qIndex >= 41;
       return {
         ...question,
