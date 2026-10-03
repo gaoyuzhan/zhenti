@@ -16,13 +16,13 @@ npm run verify
 npm run preview
 ```
 
-`npm run verify` 包含首发产物检查：只有两份预期资料、各 17 份试卷，且发布资源不夹带 PDF、未引用图片、旧资料或模板页。此检查仅描述首发范围；今后增加资料时一并更新。
+`npm run verify` 包含发布产物检查：数学一 17 份、数学二 27 份，且发布资源不夹带 PDF、未引用图片、旧资料或模板页。增加资料时应同步更新此检查。
 
 每次启动开发或构建时，会清空并重新生成 `public/book-assets/`，防止被移出收录范围的文件残留在发布包中。原件不放在这个生成目录。
 
 ## GitHub Pages
 
-目标仓库为 `dongyu-will/zhijian`，站点地址为 <https://dongyu-will.github.io/zhijian/>。执行远端步骤前先确认本地改动和构建结果。
+目标仓库为 `gaoyuzhan/zhenti`，站点地址为 <https://gaoyuzhan.github.io/zhenti/>。执行远端步骤前先确认本地改动和构建结果。
 
 1. 以 `main` 为默认分支发布；公开前检查远端分支、标签及其历史，确保不包含原 PDF、本地临时文件或敏感信息。旧私有研发历史只保留在本地，不推送。
 2. 将仓库设为公开，在 Settings → Pages 中选择 GitHub Actions。
