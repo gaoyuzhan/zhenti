@@ -1,0 +1,753 @@
+---
+import ReaderLayout from '../layouts/ReaderLayout.astro';
+
+const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+
+<ReaderLayout title="408 真题分类库 · 知间" description="2009–2026 年 408 计算机统考真题分类浏览、筛选与错题复盘。">
+  <main class="practice408">
+    <header class="practice408-header">
+      <div class="practice408-headline">
+        <a class="practice408-back" href={`${siteBase}/`}>← 返回知间</a>
+        <div>
+          <p class="practice408-kicker">408 · 计算机学科专业基础综合</p>
+          <h1>2009–2026 真题分类库</h1>
+          <p class="practice408-lead">按科目、知识点、年份和题型筛选。选择题可记录作答；大题可直接写自己的思路；错题、收藏和笔记只保存在当前浏览器。</p>
+        </div>
+      </div>
+      <div class="practice408-stats" aria-live="polite">
+        <div><strong data-stat-total>—</strong><span>题目总数</span></div>
+        <div><strong data-stat-visible>—</strong><span>当前筛选</span></div>
+        <div><strong data-stat-big>—</strong><span>综合大题</span></div>
+        <div><strong data-stat-wrong>0</strong><span>我的错题</span></div>
+      </div>
+    </header>
+
+    <section class="practice408-toolbar" aria-label="真题筛选">
+      <div class="practice408-filters">
+        <label>
+          <span>科目</span>
+          <select data-filter-subject>
+            <option value="">全部科目</option>
+            <option value="data-structure">数据结构</option>
+            <option value="computer-organization">计算机组成原理</option>
+            <option value="operating-system">操作系统</option>
+            <option value="computer-network">计算机网络</option>
+          </select>
+        </label>
+        <label>
+          <span>年份</span>
+          <select data-filter-year>
+            <option value="">2009–2026 全部年份</option>
+          </select>
+        </label>
+        <label>
+          <span>题型</span>
+          <select data-filter-type>
+            <option value="">全部题型</option>
+            <option value="choice">选择题</option>
+            <option value="comprehensive">综合大题</option>
+          </select>
+        </label>
+        <label>
+          <span>知识点</span>
+          <select data-filter-section>
+            <option value="">全部知识点</option>
+          </select>
+        </label>
+        <label class="practice408-search">
+          <span>搜索</span>
+          <input data-filter-search type="search" placeholder="题干 / 年份题号 / 知识点" autocomplete="off" />
+        </label>
+      </div>
+      <div class="practice408-modes">
+        <button type="button" data-mode-big>只做大题</button>
+        <button type="button" data-mode-wrong>只看错题</button>
+        <button type="button" data-mode-favorite>只看收藏</button>
+        <button type="button" data-clear>清空筛选</button>
+      </div>
+    </section>
+
+    <section class="practice408-status" aria-live="polite">
+      <p data-status>正在加载 408 真题数据…</p>
+      <p class="practice408-source">
+        数据来源：
+        <a href="https://github.com/zhaoyang51/cs408-notes" target="_blank" rel="noopener noreferrer">zhaoyang51/cs408-notes</a>。
+        题目为公开整理数据，可能存在 OCR、分类或答案缺失；遇到疑义请以权威原卷为准。
+      </p>
+    </section>
+
+    <section class="practice408-results" aria-labelledby="results-title">
+      <div class="practice408-results-head">
+        <div>
+          <h2 id="results-title">题目</h2>
+          <p data-result-summary></p>
+        </div>
+        <label class="practice408-page-size">
+          <span>每页</span>
+          <select data-page-size>
+            <option value="10">10</option>
+            <option value="20" selected>20</option>
+            <option value="40">40</option>
+          </select>
+        </label>
+      </div>
+
+      <div data-question-list class="practice408-list"></div>
+
+      <nav class="practice408-pagination" aria-label="题目分页" hidden>
+        <button type="button" data-page-prev>上一页</button>
+        <span data-page-label></span>
+        <button type="button" data-page-next>下一页</button>
+      </nav>
+    </section>
+
+    <footer class="practice408-footer">
+      <p>建议刷法：先按“综合大题 + 单个知识点”连续做同类真题，再切到错题复盘。看到题目时，先说出“考点 + 第一刀 + 主流程”，再展开答案。</p>
+    </footer>
+  </main>
+
+  <script>
+    const DATA_SOURCES = [
+      'data-structure',
+      'computer-organization',
+      'operating-system',
+      'computer-network'
+    ];
+    const RAW_BASE = 'https://raw.githubusercontent.com/zhaoyang51/cs408-notes/main/docs/public/data/practice';
+    const PAGES_BASE = 'https://zhaoyang51.github.io/cs408-notes/data/practice';
+    const SOURCE_SITE = 'https://zhaoyang51.github.io/cs408-notes';
+
+    const subjectNames = {
+      'data-structure': '数据结构',
+      'computer-organization': '计算机组成原理',
+      'operating-system': '操作系统',
+      'computer-network': '计算机网络'
+    };
+
+    const state = {
+      questions: [],
+      filtered: [],
+      page: 1,
+      pageSize: 20,
+      onlyWrong: false,
+      onlyFavorite: false,
+      wrong: new Set(),
+      favorite: new Set(),
+      answers: {},
+      notes: {}
+    };
+
+    const storageKeys = {
+      wrong: 'zhijian-408-wrong',
+      favorite: 'zhijian-408-favorite',
+      answers: 'zhijian-408-answers',
+      notes: 'zhijian-408-notes'
+    };
+
+    const els = {
+      subject: document.querySelector('[data-filter-subject]'),
+      year: document.querySelector('[data-filter-year]'),
+      type: document.querySelector('[data-filter-type]'),
+      section: document.querySelector('[data-filter-section]'),
+      search: document.querySelector('[data-filter-search]'),
+      pageSize: document.querySelector('[data-page-size]'),
+      list: document.querySelector('[data-question-list]'),
+      status: document.querySelector('[data-status]'),
+      summary: document.querySelector('[data-result-summary]'),
+      pagination: document.querySelector('.practice408-pagination'),
+      prev: document.querySelector('[data-page-prev]'),
+      next: document.querySelector('[data-page-next]'),
+      pageLabel: document.querySelector('[data-page-label]'),
+      statTotal: document.querySelector('[data-stat-total]'),
+      statVisible: document.querySelector('[data-stat-visible]'),
+      statBig: document.querySelector('[data-stat-big]'),
+      statWrong: document.querySelector('[data-stat-wrong]')
+    };
+
+    function readStorage() {
+      try {
+        state.wrong = new Set(JSON.parse(localStorage.getItem(storageKeys.wrong) || '[]'));
+        state.favorite = new Set(JSON.parse(localStorage.getItem(storageKeys.favorite) || '[]'));
+        state.answers = JSON.parse(localStorage.getItem(storageKeys.answers) || '{}');
+        state.notes = JSON.parse(localStorage.getItem(storageKeys.notes) || '{}');
+      } catch {
+        state.wrong = new Set();
+        state.favorite = new Set();
+        state.answers = {};
+        state.notes = {};
+      }
+    }
+
+    function saveStorage() {
+      try {
+        localStorage.setItem(storageKeys.wrong, JSON.stringify([...state.wrong]));
+        localStorage.setItem(storageKeys.favorite, JSON.stringify([...state.favorite]));
+        localStorage.setItem(storageKeys.answers, JSON.stringify(state.answers));
+        localStorage.setItem(storageKeys.notes, JSON.stringify(state.notes));
+      } catch {
+        // Storage is optional. The question bank remains usable without it.
+      }
+      updateStats();
+    }
+
+    async function fetchJson(name) {
+      const urls = [`${RAW_BASE}/${name}.json`, `${PAGES_BASE}/${name}.json`];
+      let lastError;
+      for (const url of urls) {
+        try {
+          const response = await fetch(url, { cache: 'no-store' });
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          return await response.json();
+        } catch (error) {
+          lastError = error;
+        }
+      }
+      throw lastError || new Error('加载失败');
+    }
+
+    function normalizedQuestion(question) {
+      const qIndex = Number(question.qIndex);
+      return {
+        ...question,
+        id: Number(question.id),
+        qIndex,
+        year: Number(question.year),
+        examType: qIndex >= 41 ? 'comprehensive' : 'choice',
+        subjectName: question.subjectName || subjectNames[question.subjectKey] || question.subjectKey,
+        sectionTitle: question.sectionTitle || '未分类',
+        stem: String(question.stem || '').trim(),
+        options: Array.isArray(question.options) ? question.options : [],
+        answer: String(question.answer || '').trim(),
+        explanation: String(question.explanation || '').trim()
+      };
+    }
+
+    function sectionKey(question) {
+      return `${question.subjectKey}::${question.sectionCode || ''}::${question.sectionTitle}`;
+    }
+
+    function populateYears() {
+      for (let year = 2026; year >= 2009; year -= 1) {
+        const option = document.createElement('option');
+        option.value = String(year);
+        option.textContent = `${year} 年`;
+        els.year?.append(option);
+      }
+    }
+
+    function populateSections() {
+      if (!els.section) return;
+      const current = els.section.value;
+      const subject = els.subject?.value || '';
+      const counts = new Map();
+
+      state.questions
+        .filter((question) => !subject || question.subjectKey === subject)
+        .forEach((question) => {
+          const key = sectionKey(question);
+          const currentItem = counts.get(key) || { question, count: 0 };
+          currentItem.count += 1;
+          counts.set(key, currentItem);
+        });
+
+      const sorted = [...counts.entries()].sort(([, a], [, b]) => {
+        const subjectCompare = a.question.subjectName.localeCompare(b.question.subjectName, 'zh-CN');
+        if (subjectCompare) return subjectCompare;
+        return String(a.question.sectionCode || '').localeCompare(String(b.question.sectionCode || ''), 'zh-CN', { numeric: true });
+      });
+
+      els.section.replaceChildren();
+      const all = document.createElement('option');
+      all.value = '';
+      all.textContent = `全部知识点（${sorted.length} 类）`;
+      els.section.append(all);
+
+      for (const [key, item] of sorted) {
+        const option = document.createElement('option');
+        option.value = key;
+        option.textContent = `${item.question.sectionCode || '—'} ${item.question.sectionTitle}（${item.count}）`;
+        els.section.append(option);
+      }
+      if ([...els.section.options].some((option) => option.value === current)) els.section.value = current;
+    }
+
+    function updateStats() {
+      if (els.statTotal) els.statTotal.textContent = state.questions.length ? String(state.questions.length) : '—';
+      if (els.statVisible) els.statVisible.textContent = String(state.filtered.length || 0);
+      if (els.statBig) els.statBig.textContent = state.questions.length
+        ? String(state.questions.filter((question) => question.examType === 'comprehensive').length)
+        : '—';
+      if (els.statWrong) els.statWrong.textContent = String(state.wrong.size);
+    }
+
+    function applyFilters(resetPage = true) {
+      if (resetPage) state.page = 1;
+      const subject = els.subject?.value || '';
+      const year = Number(els.year?.value || 0);
+      const type = els.type?.value || '';
+      const section = els.section?.value || '';
+      const query = (els.search?.value || '').trim().toLocaleLowerCase('zh-CN');
+
+      state.filtered = state.questions.filter((question) => {
+        if (subject && question.subjectKey !== subject) return false;
+        if (year && question.year !== year) return false;
+        if (type && question.examType !== type) return false;
+        if (section && sectionKey(question) !== section) return false;
+        if (state.onlyWrong && !state.wrong.has(question.id)) return false;
+        if (state.onlyFavorite && !state.favorite.has(question.id)) return false;
+        if (query) {
+          const haystack = [
+            question.source,
+            question.stem,
+            question.sectionTitle,
+            question.subjectName,
+            ...question.options.map((option) => option.text)
+          ].join(' ').toLocaleLowerCase('zh-CN');
+          if (!haystack.includes(query)) return false;
+        }
+        return true;
+      });
+
+      render();
+      updateStats();
+    }
+
+    function appendTextWithCode(target, value) {
+      const text = String(value || '');
+      const regex = /```([^\n]*)\n?([\s\S]*?)```/g;
+      let cursor = 0;
+      let match;
+      while ((match = regex.exec(text))) {
+        const before = text.slice(cursor, match.index);
+        if (before) {
+          const block = document.createElement('div');
+          block.className = 'practice408-plain';
+          block.textContent = before;
+          target.append(block);
+        }
+        const pre = document.createElement('pre');
+        const code = document.createElement('code');
+        code.textContent = match[2].trim();
+        pre.append(code);
+        target.append(pre);
+        cursor = regex.lastIndex;
+      }
+      const rest = text.slice(cursor);
+      if (rest || !target.childNodes.length) {
+        const block = document.createElement('div');
+        block.className = 'practice408-plain';
+        block.textContent = rest;
+        target.append(block);
+      }
+    }
+
+    function makeBadge(text, className = '') {
+      const span = document.createElement('span');
+      span.className = `practice408-badge ${className}`.trim();
+      span.textContent = text;
+      return span;
+    }
+
+    function renderQuestion(question) {
+      const article = document.createElement('article');
+      article.className = 'practice408-card';
+      article.id = `q-${question.id}`;
+
+      const header = document.createElement('header');
+      header.className = 'practice408-card-head';
+      const badges = document.createElement('div');
+      badges.className = 'practice408-badges';
+      badges.append(
+        makeBadge(question.source || `${question.year}-${question.qIndex}`, 'source'),
+        makeBadge(question.subjectName),
+        makeBadge(question.examType === 'comprehensive' ? '综合大题' : '选择题', question.examType === 'comprehensive' ? 'big' : ''),
+        makeBadge(`${question.sectionCode || '—'} ${question.sectionTitle}`)
+      );
+      header.append(badges);
+
+      const actions = document.createElement('div');
+      actions.className = 'practice408-card-actions';
+
+      const wrongButton = document.createElement('button');
+      wrongButton.type = 'button';
+      wrongButton.className = state.wrong.has(question.id) ? 'is-active danger' : '';
+      wrongButton.textContent = state.wrong.has(question.id) ? '已加入错题' : '标记错题';
+      wrongButton.addEventListener('click', () => {
+        if (state.wrong.has(question.id)) state.wrong.delete(question.id);
+        else state.wrong.add(question.id);
+        saveStorage();
+        if (state.onlyWrong) applyFilters(false);
+        else render();
+      });
+
+      const favoriteButton = document.createElement('button');
+      favoriteButton.type = 'button';
+      favoriteButton.className = state.favorite.has(question.id) ? 'is-active' : '';
+      favoriteButton.textContent = state.favorite.has(question.id) ? '已收藏' : '收藏';
+      favoriteButton.addEventListener('click', () => {
+        if (state.favorite.has(question.id)) state.favorite.delete(question.id);
+        else state.favorite.add(question.id);
+        saveStorage();
+        if (state.onlyFavorite) applyFilters(false);
+        else render();
+      });
+
+      actions.append(wrongButton, favoriteButton);
+      header.append(actions);
+      article.append(header);
+
+      const stem = document.createElement('div');
+      stem.className = 'practice408-stem';
+      appendTextWithCode(stem, question.stem);
+      article.append(stem);
+
+      if (question.examType === 'choice' && question.options.length) {
+        const options = document.createElement('div');
+        options.className = 'practice408-options';
+        const saved = state.answers[question.id];
+
+        for (const option of question.options) {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'practice408-option';
+
+          const label = document.createElement('strong');
+          label.textContent = option.label || '';
+          const text = document.createElement('span');
+          text.textContent = option.text || '';
+          button.append(label, text);
+
+          if (saved?.selected === option.label) button.classList.add('selected');
+          if (saved && question.answer) {
+            if (option.label === question.answer) button.classList.add('correct');
+            if (saved.selected === option.label && saved.selected !== question.answer) button.classList.add('wrong');
+          }
+
+          button.addEventListener('click', () => {
+            state.answers[question.id] = { selected: option.label, at: Date.now() };
+            if (question.answer) {
+              if (option.label === question.answer) state.wrong.delete(question.id);
+              else state.wrong.add(question.id);
+            }
+            saveStorage();
+            render();
+          });
+          options.append(button);
+        }
+        article.append(options);
+      }
+
+      const noteWrap = document.createElement('details');
+      noteWrap.className = 'practice408-note';
+      const noteSummary = document.createElement('summary');
+      noteSummary.textContent = question.examType === 'comprehensive' ? '我的解题思路 / 草稿' : '我的笔记';
+      const textarea = document.createElement('textarea');
+      textarea.rows = question.examType === 'comprehensive' ? 7 : 4;
+      textarea.placeholder = question.examType === 'comprehensive'
+        ? '先写：考点 → 第一刀 → 主流程 → 关键公式/伪代码…'
+        : '记录错因、易混点、下次看到什么关键词要触发什么方法…';
+      textarea.value = state.notes[question.id] || '';
+      let noteTimer;
+      textarea.addEventListener('input', () => {
+        window.clearTimeout(noteTimer);
+        noteTimer = window.setTimeout(() => {
+          const value = textarea.value.trim();
+          if (value) state.notes[question.id] = value;
+          else delete state.notes[question.id];
+          saveStorage();
+        }, 350);
+      });
+      noteWrap.append(noteSummary, textarea);
+      article.append(noteWrap);
+
+      const answerDetails = document.createElement('details');
+      answerDetails.className = 'practice408-answer';
+      const answerSummary = document.createElement('summary');
+      answerSummary.textContent = '查看参考答案与解析';
+      const answerBody = document.createElement('div');
+      answerBody.className = 'practice408-answer-body';
+
+      const answerLine = document.createElement('p');
+      const answerLabel = document.createElement('strong');
+      answerLabel.textContent = '参考答案：';
+      answerLine.append(answerLabel, document.createTextNode(question.answer || '当前整理数据暂缺'));
+
+      const explanation = document.createElement('div');
+      explanation.className = 'practice408-explanation';
+      if (question.explanation) appendTextWithCode(explanation, question.explanation);
+      else explanation.textContent = '当前整理数据暂无解析。建议先按原题独立完成，再核对权威真题解析。';
+
+      answerBody.append(answerLine, explanation);
+
+      if (question.relatedPath) {
+        const related = document.createElement('a');
+        related.className = 'practice408-related';
+        related.href = `${SOURCE_SITE}${question.relatedPath.replace(/\/$/, '')}/`;
+        related.target = '_blank';
+        related.rel = 'noopener noreferrer';
+        related.textContent = '查看来源项目对应知识点 ↗';
+        answerBody.append(related);
+      }
+
+      answerDetails.append(answerSummary, answerBody);
+      article.append(answerDetails);
+      return article;
+    }
+
+    function render() {
+      if (!els.list) return;
+      const totalPages = Math.max(1, Math.ceil(state.filtered.length / state.pageSize));
+      state.page = Math.min(state.page, totalPages);
+      const start = (state.page - 1) * state.pageSize;
+      const pageItems = state.filtered.slice(start, start + state.pageSize);
+
+      els.list.replaceChildren();
+      if (!pageItems.length) {
+        const empty = document.createElement('div');
+        empty.className = 'practice408-empty';
+        empty.textContent = state.questions.length ? '没有符合当前条件的题目。' : '题库尚未加载。';
+        els.list.append(empty);
+      } else {
+        pageItems.forEach((question) => els.list.append(renderQuestion(question)));
+      }
+
+      if (els.summary) {
+        const mode = [
+          state.onlyWrong ? '错题' : '',
+          state.onlyFavorite ? '收藏' : ''
+        ].filter(Boolean).join(' + ');
+        els.summary.textContent = `共 ${state.filtered.length} 题${mode ? ` · ${mode}模式` : ''}`;
+      }
+
+      if (els.pagination && els.pageLabel && els.prev && els.next) {
+        els.pagination.hidden = state.filtered.length <= state.pageSize;
+        els.pageLabel.textContent = `第 ${state.page} / ${totalPages} 页`;
+        els.prev.disabled = state.page <= 1;
+        els.next.disabled = state.page >= totalPages;
+      }
+    }
+
+    async function loadQuestions() {
+      readStorage();
+      populateYears();
+      updateStats();
+
+      try {
+        const datasets = await Promise.all(DATA_SOURCES.map(fetchJson));
+        state.questions = datasets
+          .flat()
+          .map(normalizedQuestion)
+          .filter((question) => Number.isFinite(question.id) && question.year >= 2009 && question.year <= 2026)
+          .sort((a, b) => {
+            const subjectOrder = DATA_SOURCES.indexOf(a.subjectKey) - DATA_SOURCES.indexOf(b.subjectKey);
+            if (subjectOrder) return subjectOrder;
+            const sectionOrder = String(a.sectionCode || '').localeCompare(String(b.sectionCode || ''), 'zh-CN', { numeric: true });
+            if (sectionOrder) return sectionOrder;
+            if (a.year !== b.year) return a.year - b.year;
+            return a.qIndex - b.qIndex;
+          });
+
+        populateSections();
+        if (els.status) {
+          els.status.textContent = state.questions.length === 846
+            ? '已载入 2009–2026 共 846 道统考真题。'
+            : `已载入 ${state.questions.length} 道题；来源数据数量与预期 846 道不一致，请留意上游更新。`;
+        }
+        applyFilters();
+      } catch (error) {
+        console.error(error);
+        if (els.status) els.status.textContent = '真题数据加载失败。请检查网络后刷新页面；本站会自动尝试两个公开数据地址。';
+        render();
+      }
+    }
+
+    els.subject?.addEventListener('change', () => {
+      populateSections();
+      applyFilters();
+    });
+    els.year?.addEventListener('change', () => applyFilters());
+    els.type?.addEventListener('change', () => applyFilters());
+    els.section?.addEventListener('change', () => applyFilters());
+    els.search?.addEventListener('input', () => applyFilters());
+    els.pageSize?.addEventListener('change', () => {
+      state.pageSize = Number(els.pageSize.value) || 20;
+      state.page = 1;
+      render();
+    });
+
+    document.querySelector('[data-mode-big]')?.addEventListener('click', () => {
+      if (els.type) els.type.value = 'comprehensive';
+      state.onlyWrong = false;
+      state.onlyFavorite = false;
+      applyFilters();
+    });
+    document.querySelector('[data-mode-wrong]')?.addEventListener('click', () => {
+      state.onlyWrong = !state.onlyWrong;
+      if (state.onlyWrong) state.onlyFavorite = false;
+      applyFilters();
+    });
+    document.querySelector('[data-mode-favorite]')?.addEventListener('click', () => {
+      state.onlyFavorite = !state.onlyFavorite;
+      if (state.onlyFavorite) state.onlyWrong = false;
+      applyFilters();
+    });
+    document.querySelector('[data-clear]')?.addEventListener('click', () => {
+      if (els.subject) els.subject.value = '';
+      if (els.year) els.year.value = '';
+      if (els.type) els.type.value = '';
+      if (els.search) els.search.value = '';
+      state.onlyWrong = false;
+      state.onlyFavorite = false;
+      populateSections();
+      if (els.section) els.section.value = '';
+      applyFilters();
+    });
+
+    els.prev?.addEventListener('click', () => {
+      if (state.page > 1) {
+        state.page -= 1;
+        render();
+        document.querySelector('.practice408-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+    els.next?.addEventListener('click', () => {
+      const totalPages = Math.ceil(state.filtered.length / state.pageSize);
+      if (state.page < totalPages) {
+        state.page += 1;
+        render();
+        document.querySelector('.practice408-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+
+    loadQuestions();
+  </script>
+
+  <style is:global>
+    .practice408 {
+      --p408-accent: #4d6255;
+      --p408-accent-dark: #3f5146;
+      --p408-ink: #252a26;
+      --p408-muted: #656c66;
+      --p408-line: #d8ddd7;
+      --p408-soft: #f5f7f4;
+      --p408-danger: #9f3d35;
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 52px;
+      color: var(--p408-ink);
+      font-family: 'Noto Sans SC Variable', 'PingFang SC', system-ui, sans-serif;
+    }
+    .practice408 a { color: inherit; text-underline-offset: 4px; }
+    .practice408 button, .practice408 select, .practice408 input, .practice408 textarea { font: inherit; }
+    .practice408 button:focus-visible, .practice408 a:focus-visible, .practice408 select:focus-visible,
+    .practice408 input:focus-visible, .practice408 textarea:focus-visible { outline: 2px solid var(--p408-accent); outline-offset: 2px; }
+
+    .practice408-header { padding: 22px 0 26px; border-bottom: 1px solid var(--p408-line); }
+    .practice408-headline { display: grid; gap: 22px; }
+    .practice408-back { width: max-content; color: var(--p408-muted) !important; font-size: 13px; text-decoration: none; }
+    .practice408-back:hover { color: var(--p408-ink) !important; text-decoration: underline; }
+    .practice408-kicker { margin: 0 0 8px; color: var(--p408-accent); font-size: 12px; font-weight: 750; letter-spacing: .08em; }
+    .practice408 h1 { margin: 0; font-size: clamp(32px, 5vw, 54px); line-height: 1.16; letter-spacing: -.035em; }
+    .practice408-lead { max-width: 72ch; margin: 16px 0 0; color: var(--p408-muted); font-size: 14px; line-height: 1.8; }
+    .practice408-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; margin-top: 26px; background: var(--p408-line); border: 1px solid var(--p408-line); }
+    .practice408-stats > div { display: grid; gap: 4px; padding: 14px 16px; background: white; }
+    .practice408-stats strong { font-size: 24px; font-variant-numeric: tabular-nums; }
+    .practice408-stats span { color: var(--p408-muted); font-size: 11px; }
+
+    .practice408-toolbar { position: sticky; top: 0; z-index: 20; margin: 20px 0; padding: 14px; border: 1px solid var(--p408-line); background: rgba(255,255,255,.96); backdrop-filter: blur(10px); }
+    .practice408-filters { display: grid; grid-template-columns: 1fr .9fr .9fr 1.3fr 1.6fr; gap: 10px; }
+    .practice408-filters label, .practice408-page-size { display: grid; gap: 5px; color: var(--p408-muted); font-size: 11px; font-weight: 650; }
+    .practice408-filters select, .practice408-filters input, .practice408-page-size select {
+      width: 100%; min-height: 40px; padding: 0 10px; border: 1px solid var(--p408-line); border-radius: 5px;
+      background: #fff; color: var(--p408-ink); font-size: 13px;
+    }
+    .practice408-modes { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--p408-line); }
+    .practice408-modes button, .practice408-card-actions button, .practice408-pagination button {
+      min-height: 36px; padding: 0 12px; border: 1px solid var(--p408-line); border-radius: 5px;
+      background: #fff; color: var(--p408-ink); font-size: 12px; cursor: pointer;
+    }
+    .practice408-modes button:hover, .practice408-card-actions button:hover, .practice408-pagination button:hover:not(:disabled) { background: var(--p408-soft); }
+    .practice408-card-actions button.is-active { border-color: var(--p408-accent); color: var(--p408-accent); font-weight: 700; }
+    .practice408-card-actions button.is-active.danger { border-color: #d9aaa6; background: #fff6f5; color: var(--p408-danger); }
+
+    .practice408-status { display: grid; grid-template-columns: 1fr auto; gap: 20px; align-items: start; padding: 2px 0 16px; color: var(--p408-muted); font-size: 12px; line-height: 1.7; }
+    .practice408-status p { margin: 0; }
+    .practice408-source { max-width: 62ch; text-align: right; }
+
+    .practice408-results { scroll-margin-top: 120px; }
+    .practice408-results-head { display: flex; align-items: end; justify-content: space-between; gap: 20px; padding: 14px 0; border-bottom: 1px solid var(--p408-line); }
+    .practice408-results-head h2 { margin: 0; font-size: 24px; }
+    .practice408-results-head p { margin: 4px 0 0; color: var(--p408-muted); font-size: 12px; }
+    .practice408-page-size { grid-template-columns: auto 70px; align-items: center; }
+    .practice408-page-size select { min-height: 34px; }
+
+    .practice408-list { display: grid; gap: 14px; padding: 16px 0; }
+    .practice408-card { padding: 18px 20px; border: 1px solid var(--p408-line); background: #fff; }
+    .practice408-card-head { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; padding-bottom: 12px; border-bottom: 1px solid var(--p408-line); }
+    .practice408-badges { display: flex; flex-wrap: wrap; gap: 6px; }
+    .practice408-badge { display: inline-flex; align-items: center; min-height: 25px; padding: 0 8px; border: 1px solid var(--p408-line); border-radius: 999px; color: var(--p408-muted); font-size: 11px; line-height: 1.2; }
+    .practice408-badge.source { border-color: var(--p408-accent); color: var(--p408-accent); font-weight: 750; }
+    .practice408-badge.big { background: var(--p408-accent); border-color: var(--p408-accent); color: #fff; }
+    .practice408-card-actions { display: flex; flex-shrink: 0; gap: 6px; }
+    .practice408-stem { padding: 18px 0 12px; font-size: 15px; line-height: 1.78; }
+    .practice408-plain { white-space: pre-wrap; overflow-wrap: anywhere; }
+    .practice408-stem pre, .practice408-explanation pre { overflow-x: auto; margin: 12px 0; padding: 13px 15px; border-radius: 6px; background: #1f2937; color: #f3f4f6; font: 13px/1.65 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .practice408-options { display: grid; gap: 8px; margin: 4px 0 12px; }
+    .practice408-option { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 8px; align-items: start; width: 100%; padding: 11px 12px; border: 1px solid var(--p408-line); border-radius: 6px; background: #fff; color: var(--p408-ink); text-align: left; cursor: pointer; }
+    .practice408-option:hover { background: var(--p408-soft); }
+    .practice408-option strong { color: var(--p408-accent); }
+    .practice408-option.selected { border-color: var(--p408-accent); background: #f3f7f4; }
+    .practice408-option.correct { border-color: #78a184; background: #f2faf4; }
+    .practice408-option.wrong { border-color: #c78179; background: #fff5f4; }
+
+    .practice408-note, .practice408-answer { margin-top: 10px; border-top: 1px solid var(--p408-line); }
+    .practice408-note summary, .practice408-answer summary { min-height: 42px; display: flex; align-items: center; color: var(--p408-muted); font-size: 12px; font-weight: 700; cursor: pointer; }
+    .practice408-note textarea { width: 100%; resize: vertical; margin: 0 0 8px; padding: 12px; border: 1px solid var(--p408-line); border-radius: 6px; color: var(--p408-ink); font-size: 13px; line-height: 1.7; }
+    .practice408-answer-body { padding: 2px 0 10px; color: var(--p408-muted); font-size: 13px; line-height: 1.75; }
+    .practice408-answer-body > p { margin: 0 0 8px; color: var(--p408-ink); }
+    .practice408-explanation { white-space: normal; }
+    .practice408-explanation .practice408-plain { white-space: pre-wrap; }
+    .practice408-related { display: inline-block; margin-top: 10px; color: var(--p408-accent) !important; }
+    .practice408-empty { padding: 54px 20px; border: 1px dashed var(--p408-line); color: var(--p408-muted); text-align: center; }
+
+    .practice408-pagination { display: flex; justify-content: center; align-items: center; gap: 14px; padding: 8px 0 22px; }
+    .practice408-pagination button:disabled { opacity: .4; cursor: default; }
+    .practice408-pagination span { color: var(--p408-muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+    .practice408-footer { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--p408-line); color: var(--p408-muted); font-size: 12px; line-height: 1.8; }
+    .practice408-footer p { margin: 0; }
+
+    @media (max-width: 900px) {
+      .practice408-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .practice408-search { grid-column: 1 / -1; }
+      .practice408-status { grid-template-columns: 1fr; }
+      .practice408-source { text-align: left; }
+    }
+    @media (max-width: 640px) {
+      .practice408 { width: min(100% - 20px, 1180px); padding-top: 14px; }
+      .practice408-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .practice408-toolbar { top: 0; margin: 12px 0; padding: 10px; }
+      .practice408-filters { grid-template-columns: 1fr; }
+      .practice408-search { grid-column: auto; }
+      .practice408-card { padding: 14px; }
+      .practice408-card-head { display: grid; }
+      .practice408-card-actions { flex-wrap: wrap; }
+      .practice408-results-head { align-items: center; }
+    }
+    @media (prefers-color-scheme: dark) {
+      .practice408 {
+        --p408-ink: #f1f3f1;
+        --p408-muted: #a6ada7;
+        --p408-line: #3b413c;
+        --p408-soft: #262b27;
+        color: var(--p408-ink);
+      }
+      .practice408-stats > div, .practice408-toolbar, .practice408-filters select, .practice408-filters input,
+      .practice408-page-size select, .practice408-card, .practice408-modes button, .practice408-card-actions button,
+      .practice408-pagination button, .practice408-option, .practice408-note textarea { background: #171a18; color: var(--p408-ink); }
+      .practice408-toolbar { background: rgba(23,26,24,.96); }
+      .practice408-option.selected, .practice408-option.correct { background: #1d2a20; }
+      .practice408-option.wrong, .practice408-card-actions button.is-active.danger { background: #2a1e1d; }
+    }
+  </style>
+</ReaderLayout>
