@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 460" role="img" aria-labelledby="t d">
+<title id="t">2008 数学二第6题区域 D_uv</title><desc id="d">第一象限内，半径从1到u、极角从0到v的扇环区域。</desc>
+<style>text{font-family:serif;fill:#111}.a{stroke:#111;stroke-width:3;fill:none}.c{stroke:#111;stroke-width:3;fill:none}.shade{fill:#d9d9d9;stroke:#111;stroke-width:2}.s{font-size:25px}</style>
+<path class="a" d="M75 390H570M105 420V35"/><path d="M570 390l-16-9v18zM105 35l-9 16h18z" fill="#111"/>
+<path class="shade" d="M225 390 A120 120 0 0 0 191 305 L317 179 A300 300 0 0 1 405 390 Z"/>
+<path class="c" d="M225 390 A120 120 0 0 0 191 305"/>
+<path class="c" d="M405 390 A300 300 0 0 0 317 179"/>
+<path class="c" d="M105 390L317 179"/>
+<path class="c" d="M105 390H405"/>
+<text x="330" y="190" class="s">x²+y²=u²</text><text x="112" y="305" class="s">x²+y²=1</text>
+<text x="270" y="330" class="s">Dᵤᵥ</text><text x="150" y="375" class="s">v</text><text x="575" y="405" class="s">x</text><text x="80" y="45" class="s">y</text>
+</svg>

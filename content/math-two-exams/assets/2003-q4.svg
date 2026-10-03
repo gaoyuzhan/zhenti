@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 390" role="img" aria-labelledby="t d">
+<title id="t">2003 数学二选择题第4题导函数图形</title><desc id="d">导函数图形左侧为开口向上的曲线并两次穿过横轴，右侧从横轴下方上升并穿过横轴。</desc>
+<style>text{font-family:serif;fill:#111}.a{stroke:#111;stroke-width:3;fill:none}.c{stroke:#111;stroke-width:4;fill:none}.s{font-size:26px}</style>
+<path class="a" d="M50 215H710M375 345V35"/><path d="M710 215l-16-9v18zM375 35l-9 16h18z" fill="#111"/>
+<path class="c" d="M85 105 C120 315 235 330 345 105"/>
+<path class="c" d="M410 285 C455 180 520 95 635 70"/>
+<text x="360" y="240" class="s">O</text><text x="715" y="230" class="s">x</text><text x="390" y="50" class="s">y</text>
+</svg>

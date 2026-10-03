@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 500" role="img" aria-labelledby="t d">
+<title id="t">2000 数学二第12题正方形与直线示意图</title>
+<desc id="d">正方形 D 为 0≤x≤1,0≤y≤1，斜线 x+y=t 划出左下方区域。</desc>
+<style>text{font-family:serif;fill:#111}.axis{stroke:#111;stroke-width:3;fill:none}.line{stroke:#111;stroke-width:4;fill:none}.shade{fill:#e5e5e5;stroke:none}.s{font-size:26px}</style>
+<path class="axis" d="M90 410H560M120 450V45"/><path d="M560 410l-16-9v18zM120 45l-9 16h18z" fill="#111"/>
+<path class="line" d="M120 150H400V410H120Z"/>
+<path class="shade" d="M120 410V235L295 410Z"/>
+<path class="line" d="M75 280L340 15"/>
+<text x="412" y="435" class="s">1</text><text x="92" y="145" class="s">1</text>
+<text x="105" y="438" class="s">0</text><text x="565" y="425" class="s">x</text><text x="95" y="62" class="s">y</text>
+<text x="300" y="65" class="s">x+y=t</text>
+</svg>
