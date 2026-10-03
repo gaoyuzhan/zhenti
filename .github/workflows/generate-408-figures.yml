@@ -1,0 +1,42 @@
+name: Generate 408 figure assets
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - scripts/generate-408-figures.py
+      - .github/workflows/generate-408-figures.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: generate-408-figures
+  cancel-in-progress: true
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install crop dependencies
+        run: python -m pip install --disable-pip-version-check pymupdf pillow
+      - name: Generate source figure crops
+        run: python scripts/generate-408-figures.py
+      - name: Commit generated assets
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/408-assets/figures
+          if git diff --cached --quiet; then
+            echo "No figure asset changes."
+          else
+            git commit -m "chore: generate 408 source figure crops"
+            git push
+          fi
