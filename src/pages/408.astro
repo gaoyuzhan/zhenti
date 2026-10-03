@@ -135,6 +135,8 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
 
   <script>
     // @ts-nocheck
+    import { getVerified408ChoiceAnswer } from '../data/408-answer-key';
+
     const DATA_SOURCES = [
       'data-structure',
       'computer-organization',
@@ -144,6 +146,7 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
     const RAW_BASE = 'https://raw.githubusercontent.com/zhaoyang51/cs408-notes/main/docs/public/data/practice';
     const PAGES_BASE = 'https://zhaoyang51.github.io/cs408-notes/data/practice';
     const SOURCE_SITE = 'https://zhaoyang51.github.io/cs408-notes';
+    const ASSET_BASE = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/408-assets/figures`;
 
     const subjectNames = {
       'data-structure': '数据结构',
@@ -163,7 +166,8 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
       wrong: new Set(),
       favorite: new Set(),
       answers: {},
-      notes: {}
+      notes: {},
+      figureManifest: {}
     };
 
     const storageKeys = {
@@ -246,20 +250,39 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
       throw lastError || new Error('加载失败');
     }
 
+    async function fetchFigureManifest() {
+      try {
+        const response = await fetch(`${ASSET_BASE}/manifest.json`, { cache: 'no-store' });
+        if (!response.ok) return {};
+        return await response.json();
+      } catch {
+        return {};
+      }
+    }
+
     function normalizedQuestion(question) {
       const qIndex = Number(question.qIndex);
+      const year = Number(question.year);
+      const sourceAnswer = String(question.answer || '').trim().toUpperCase();
+      const verifiedAnswer = getVerified408ChoiceAnswer(year, qIndex);
+      const answerVerified = Boolean(verifiedAnswer);
+      const sourceMatchesVerified = !verifiedAnswer || !sourceAnswer || sourceAnswer === verifiedAnswer;
+      const isComprehensive = qIndex >= 41;
       return {
         ...question,
         id: Number(question.id),
         qIndex,
-        year: Number(question.year),
-        examType: qIndex >= 41 ? 'comprehensive' : 'choice',
+        year,
+        examType: isComprehensive ? 'comprehensive' : 'choice',
         subjectName: question.subjectName || subjectNames[question.subjectKey] || question.subjectKey,
         sectionTitle: question.sectionTitle || '未分类',
         stem: String(question.stem || '').trim(),
         options: Array.isArray(question.options) ? question.options : [],
-        answer: String(question.answer || '').trim(),
-        explanation: String(question.explanation || '').trim()
+        sourceAnswer,
+        answer: isComprehensive ? '' : (verifiedAnswer || sourceAnswer),
+        answerVerified,
+        answerCorrected: Boolean(verifiedAnswer && sourceAnswer && sourceAnswer !== verifiedAnswer),
+        explanation: isComprehensive || !sourceMatchesVerified ? '' : String(question.explanation || '').trim()
       };
     }
 
@@ -509,6 +532,21 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
       appendTextWithCode(stem, question.stem);
       article.append(stem);
 
+      const figurePath = state.figureManifest[`${question.year}-${question.qIndex}`];
+      if (figurePath) {
+        const figure = document.createElement('figure');
+        figure.className = 'practice408-source-figure';
+        const image = document.createElement('img');
+        image.src = `${ASSET_BASE}/${figurePath}`;
+        image.alt = `${question.year} 年 408 第 ${question.qIndex} 题原卷题面（含图）`;
+        image.loading = 'lazy';
+        image.decoding = 'async';
+        const caption = document.createElement('figcaption');
+        caption.textContent = '原卷题面（含图）';
+        figure.append(image, caption);
+        article.append(figure);
+      }
+
       if (question.examType === 'choice' && question.options.length) {
         const options = document.createElement('div');
         options.className = 'practice408-options';
@@ -571,19 +609,50 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
       const answerDetails = document.createElement('details');
       answerDetails.className = 'practice408-answer';
       const answerSummary = document.createElement('summary');
-      answerSummary.textContent = '查看参考答案与解析';
+      answerSummary.textContent = question.examType === 'comprehensive' ? '参考答案状态' : '查看参考答案与解析';
       const answerBody = document.createElement('div');
       answerBody.className = 'practice408-answer-body';
 
       const answerLine = document.createElement('p');
       const answerLabel = document.createElement('strong');
       answerLabel.textContent = '参考答案：';
-      answerLine.append(answerLabel, document.createTextNode(question.answer || '当前整理数据暂缺'));
+      if (question.examType === 'comprehensive') {
+        answerLine.append(answerLabel, document.createTextNode('大题答案正在逐题校对，暂不展示上游未核对内容'));
+      } else {
+        answerLine.append(answerLabel, document.createTextNode(question.answer || '待核对'));
+        if (question.answerVerified) {
+          const verified = document.createElement('span');
+          verified.className = 'practice408-verified';
+          verified.textContent = '已校对';
+          answerLine.append(document.createTextNode(' '), verified);
+        }
+      }
 
       const explanation = document.createElement('div');
       explanation.className = 'practice408-explanation';
-      if (question.explanation) appendTextWithCode(explanation, question.explanation);
-      else explanation.textContent = '当前整理数据暂无解析。建议先按原题独立完成，再核对权威真题解析。';
+      if (question.answerCorrected) {
+        const corrected = document.createElement('p');
+        corrected.className = 'practice408-correction';
+        corrected.textContent = `已覆盖原分类题库中的错误答案（原标：${question.sourceAnswer}）。`;
+        explanation.append(corrected);
+      }
+      if (question.examType === 'comprehensive') {
+        const status = document.createElement('p');
+        status.textContent = '为避免把第三方 OCR / 解析错误继续带进题库，大题参考答案将在核对原卷答案后再显示。';
+        explanation.append(status);
+      } else if (question.explanation) {
+        const note = document.createElement('p');
+        note.className = 'practice408-explanation-note';
+        note.textContent = '以下解析来自原分类数据；选择题答案已单独校正，解析本身仍在继续复核。';
+        explanation.append(note);
+        appendTextWithCode(explanation, question.explanation);
+      } else {
+        const status = document.createElement('p');
+        status.textContent = question.answerVerified
+          ? '选择题答案已校正；详细解析暂未完成逐题复核。'
+          : '当前整理数据暂无已核对解析。';
+        explanation.append(status);
+      }
 
       answerBody.append(answerLine, explanation);
 
@@ -683,7 +752,11 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
       updateStats();
 
       try {
-        const datasets = await Promise.all(DATA_SOURCES.map(fetchJson));
+        const [datasets, figureManifest] = await Promise.all([
+          Promise.all(DATA_SOURCES.map(fetchJson)),
+          fetchFigureManifest()
+        ]);
+        state.figureManifest = figureManifest || {};
         state.questions = datasets
           .flat()
           .map(normalizedQuestion)
@@ -699,8 +772,9 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
 
         populateSections();
         if (els.status) {
+          const figureCount = Object.keys(state.figureManifest).length;
           els.status.textContent = state.questions.length === 846
-            ? '已载入 2009–2026 共 846 道统考真题。'
+            ? `已载入 2009–2026 共 846 道统考真题；选择题答案使用本站校对答案表，已接入 ${figureCount} 道原卷含图题面。`
             : `已载入 ${state.questions.length} 道题；来源数据数量与预期 846 道不一致，请留意上游更新。`;
         }
         setViewMode('paper');
@@ -897,6 +971,12 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
     .practice408-option.correct { border-color: #78a184; background: #f2faf4; }
     .practice408-option.wrong { border-color: #c78179; background: #fff5f4; }
 
+    .practice408-source-figure { margin: 12px 0 16px; padding: 10px; border: 1px solid var(--p408-line); background: #fff; }
+    .practice408-source-figure img { display: block; width: 100%; max-width: 820px; height: auto; margin: 0 auto; }
+    .practice408-source-figure figcaption { margin-top: 7px; color: var(--p408-muted); font-size: 11px; text-align: center; }
+    .practice408-verified { display: inline-block; margin-left: 6px; padding: 2px 6px; border: 1px solid var(--p408-accent); color: var(--p408-accent); font-size: 10px; font-weight: 800; vertical-align: middle; }
+    .practice408-correction { margin: 0 0 10px !important; padding: 8px 10px; border-left: 3px solid #b42318; background: #fff4f2; color: #8f1d16 !important; font-weight: 700; }
+    .practice408-explanation-note { color: var(--p408-muted); font-size: 12px; }
     .practice408-note, .practice408-answer { margin-top: 10px; border-top: 1px solid var(--p408-line); }
     .practice408-note summary, .practice408-answer summary { min-height: 42px; display: flex; align-items: center; color: var(--p408-muted); font-size: 12px; font-weight: 700; cursor: pointer; }
     .practice408-note textarea { width: 100%; resize: vertical; margin: 0 0 8px; padding: 12px; border: 1px solid var(--p408-line); border-radius: 6px; color: var(--p408-ink); font-size: 13px; line-height: 1.7; }
@@ -958,7 +1038,7 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
       .practice408-stats > div, .practice408-toolbar, .practice408-filters select, .practice408-filters input,
       .practice408-page-size select, .practice408-card, .practice408-modes button, .practice408-view-switch button, .practice408-card-actions button,
       .practice408-year-link,
-      .practice408-pagination button, .practice408-option, .practice408-note textarea { background: #171a18; color: var(--p408-ink); }
+      .practice408-pagination button, .practice408-option, .practice408-note textarea, .practice408-source-figure { background: #171a18; color: var(--p408-ink); }
       .practice408-toolbar { background: rgba(23,26,24,.96); }
       .practice408-option.selected, .practice408-option.correct { background: #1d2a20; }
       .practice408-option.wrong, .practice408-card-actions button.is-active.danger { background: #2a1e1d; }
