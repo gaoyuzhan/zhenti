@@ -2,7 +2,7 @@
 
 **串联各书的知识，建立自己的理解。**
 
-[在线阅读](https://dongyu-will.github.io/zhijian/)
+[在线阅读](https://gaoyuzhan.github.io/zhenti/)
 
 知间希望让读者从一个知识点出发，找到不同书籍中的解释、例题和应用，看见它们之间的对应与互补。书籍保留完整阅读体验，知识点逐步成为连接不同资料的线索。
 
@@ -43,10 +43,10 @@ npm run dev
 
 ```sh
 npm run verify       # 类型检查、测试、目录校验、静态构建及首发产物检查
-npm run preview      # 预览 dist/，默认访问 /zhijian/
+npm run preview      # 预览 dist/，默认访问 /zhenti/
 ```
 
-默认生产路径为 `/zhijian/`。自定义域名或其他托管路径可以通过 `PUBLIC_BASE_PATH` 和 `PUBLIC_SITE_URL` 配置；例如部署在域名根路径：
+默认生产路径为 `/zhenti/`。自定义域名或其他托管路径可以通过 `PUBLIC_BASE_PATH` 和 `PUBLIC_SITE_URL` 配置；例如部署在域名根路径：
 
 ```sh
 PUBLIC_BASE_PATH=/ PUBLIC_SITE_URL=https://your-domain.example npm run build
