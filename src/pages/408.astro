@@ -22,6 +22,11 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
               <span>真题分类</span><span>专项</span>
             </button>
           </div>
+          <div class="practice408-sidebar-group">
+            <a class="practice408-sidebar-link" href={`${siteBase}/wrong/408/`}>
+              <span>我的错题集</span><span>复盘</span>
+            </a>
+          </div>
         </div>
       </aside>
       <div class="practice408-content">
@@ -1027,21 +1032,33 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
       .practice408-card-actions { flex-wrap: wrap; }
       .practice408-results-head { align-items: center; }
     }
-    @media (prefers-color-scheme: dark) {
-      .practice408 {
-        --p408-ink: #f1f3f1;
-        --p408-muted: #a6ada7;
-        --p408-line: #3b413c;
-        --p408-soft: #262b27;
-        color: var(--p408-ink);
-      }
-      .practice408-stats > div, .practice408-toolbar, .practice408-filters select, .practice408-filters input,
-      .practice408-page-size select, .practice408-card, .practice408-modes button, .practice408-view-switch button, .practice408-card-actions button,
-      .practice408-year-link,
-      .practice408-pagination button, .practice408-option, .practice408-note textarea, .practice408-source-figure { background: #171a18; color: var(--p408-ink); }
-      .practice408-toolbar { background: rgba(23,26,24,.96); }
-      .practice408-option.selected, .practice408-option.correct { background: #1d2a20; }
-      .practice408-option.wrong, .practice408-card-actions button.is-active.danger { background: #2a1e1d; }
+    :root[data-theme='dark'] .practice408 {
+      --p408-ink: #f1f3f1;
+      --p408-muted: #a6ada7;
+      --p408-line: #3b413c;
+      --p408-soft: #262b27;
+      color: var(--p408-ink);
     }
+    :root[data-theme='dark'] .practice408-stats > div,
+    :root[data-theme='dark'] .practice408-toolbar,
+    :root[data-theme='dark'] .practice408-filters select,
+    :root[data-theme='dark'] .practice408-filters input,
+    :root[data-theme='dark'] .practice408-page-size select,
+    :root[data-theme='dark'] .practice408-card,
+    :root[data-theme='dark'] .practice408-modes button,
+    :root[data-theme='dark'] .practice408-view-switch button,
+    :root[data-theme='dark'] .practice408-card-actions button,
+    :root[data-theme='dark'] .practice408-year-link,
+    :root[data-theme='dark'] .practice408-pagination button,
+    :root[data-theme='dark'] .practice408-option,
+    :root[data-theme='dark'] .practice408-note textarea {
+      background: #171a18;
+      color: var(--p408-ink);
+    }
+    :root[data-theme='dark'] .practice408-toolbar { background: rgba(23,26,24,.96); }
+    :root[data-theme='dark'] .practice408-option.selected,
+    :root[data-theme='dark'] .practice408-option.correct { background: #1d2a20; }
+    :root[data-theme='dark'] .practice408-option.wrong,
+    :root[data-theme='dark'] .practice408-card-actions button.is-active.danger { background: #2a1e1d; }
   </style>
 </ReaderLayout>

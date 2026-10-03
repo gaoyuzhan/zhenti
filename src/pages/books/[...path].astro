@@ -66,7 +66,10 @@ const concepts = document.headings.length > 0
       <section class="reading-pane">
         <article>
           <header class="article-header">
-            <h1>{document.title}</h1>
+            <div class="article-title-row">
+              <h1>{document.title}</h1>
+              {book.catalog.slug === 'math-two-exams' ? <a class="wrong-book-shortcut" href={`${siteBase}/wrong/math/`}>数学错题集</a> : null}
+            </div>
             {isEntryDocument && book.catalog.description ? <p class="dek">{book.catalog.description}</p> : null}
           </header>
           <div class="markdown-body" set:html={document.html}></div>
@@ -133,6 +136,41 @@ const concepts = document.headings.length > 0
       }
     };
     void renderFunctionPlots();
+
+    const mathWrongStorageKey = 'zhijian-math-two-wrong';
+    if (root?.dataset.bookSlug === 'math-two-exams' && root.dataset.sourcePath?.startsWith('chapters/')) {
+      let wrongKeys = new Set<string>();
+      try {
+        wrongKeys = new Set(JSON.parse(localStorage.getItem(mathWrongStorageKey) ?? '[]'));
+      } catch {
+        wrongKeys = new Set();
+      }
+      const saveMathWrong = () => {
+        try { localStorage.setItem(mathWrongStorageKey, JSON.stringify([...wrongKeys])); } catch {}
+      };
+      root.querySelectorAll<HTMLElement>('.markdown-body h3[id]').forEach((heading) => {
+        if (!/^第\s*\d+\s*题/.test(heading.textContent?.trim() ?? '')) return;
+        const key = `${root.dataset.sourcePath}#${heading.id}`;
+        heading.classList.add('question-heading');
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'math-wrong-toggle';
+        const sync = () => {
+          const active = wrongKeys.has(key);
+          button.classList.toggle('is-active', active);
+          button.setAttribute('aria-pressed', String(active));
+          button.textContent = active ? '已加入错题' : '加入错题';
+        };
+        button.addEventListener('click', () => {
+          wrongKeys.has(key) ? wrongKeys.delete(key) : wrongKeys.add(key);
+          saveMathWrong();
+          sync();
+        });
+        sync();
+        heading.append(button);
+      });
+    }
+
     const right = root?.querySelector<HTMLElement>('[data-right-drawer]');
     const searchOverlay = root?.querySelector<HTMLElement>('[data-search-overlay]');
     const libraryOverlay = root?.querySelector<HTMLElement>('[data-library-overlay]');

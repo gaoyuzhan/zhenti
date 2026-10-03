@@ -1,0 +1,184 @@
+---
+import ReaderLayout from '../../layouts/ReaderLayout.astro';
+import '../../styles/wrong-book.css';
+const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+
+<ReaderLayout title="数学二错题集 · 知间" description="只显示你在数学二真题中加入错题集的题目。">
+  <main class="wrong-book" data-math-wrong-book data-site-base={siteBase}>
+    <div class="wrong-shell">
+      <aside class="wrong-sidebar" aria-label="数学二错题目录">
+        <div class="wrong-sidebar-inner">
+          <h2>目录</h2>
+          <a href={`${siteBase}/books/math-two-exams/`}>返回数学二真题 <span>套卷</span></a>
+          <p class="wrong-nav-label">错题年份</p>
+          <nav class="wrong-year-nav" data-wrong-year-nav></nav>
+        </div>
+      </aside>
+
+      <section class="wrong-content">
+        <header class="wrong-header">
+          <a class="wrong-back" href={`${siteBase}/`}>← 返回知间</a>
+          <h1>数学二错题集</h1>
+          <p>只收录你在数学二真题页面点过“加入错题”的题目。左边按年份定位，右边连续显示错题题面；移出错题集后会立即消失。</p>
+          <div class="wrong-summary"><span data-wrong-count>正在读取本机错题…</span><span>数据仅保存在当前浏览器</span></div>
+        </header>
+        <div class="wrong-list" data-wrong-list></div>
+        <div class="wrong-empty" data-wrong-empty hidden>
+          还没有数学二错题。<br />回到任意数学二套卷，在题号右侧点“加入错题”即可。
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const root = document.querySelector<HTMLElement>('[data-math-wrong-book]');
+    const siteBase = root?.dataset.siteBase ?? '';
+    const storageKey = 'zhijian-math-two-wrong';
+    const list = root?.querySelector<HTMLElement>('[data-wrong-list]');
+    const empty = root?.querySelector<HTMLElement>('[data-wrong-empty]');
+    const count = root?.querySelector<HTMLElement>('[data-wrong-count]');
+    const yearNav = root?.querySelector<HTMLElement>('[data-wrong-year-nav]');
+
+    const readKeys = (): string[] => {
+      try {
+        const value = JSON.parse(localStorage.getItem(storageKey) ?? '[]');
+        return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
+      } catch {
+        return [];
+      }
+    };
+
+    const saveKeys = (keys: string[]) => {
+      try { localStorage.setItem(storageKey, JSON.stringify(keys)); } catch {}
+    };
+
+    const parseKey = (key: string) => {
+      const hash = key.indexOf('#');
+      const sourcePath = hash >= 0 ? key.slice(0, hash) : key;
+      const headingId = hash >= 0 ? key.slice(hash + 1) : '';
+      const year = sourcePath.match(/(20\d{2})/)?.[1] ?? '其他';
+      return { key, sourcePath, headingId, year };
+    };
+
+    const chapterUrl = (sourcePath: string) =>
+      `${siteBase}/books/math-two-exams/${sourcePath.replace(/^chapters\//, '').replace(/\.(?:md|markdown)$/i, '')}/`;
+
+    const extractQuestion = (doc: Document, headingId: string) => {
+      const heading = doc.getElementById(headingId);
+      if (!heading || heading.tagName !== 'H3') return null;
+      const body = document.createElement('div');
+      body.className = 'wrong-question-body';
+      let node = heading.nextElementSibling;
+      while (node && !['H2', 'H3'].includes(node.tagName)) {
+        body.append(node.cloneNode(true));
+        node = node.nextElementSibling;
+      }
+      return { title: heading.textContent?.trim() || '题目', body };
+    };
+
+    async function renderWrongBook() {
+      const keys = readKeys();
+      list?.replaceChildren();
+      yearNav?.replaceChildren();
+      if (count) count.textContent = `共 ${keys.length} 道错题`;
+      if (empty) empty.hidden = keys.length > 0;
+      if (!keys.length || !list || !yearNav) return;
+
+      const entries = keys.map(parseKey);
+      const bySource = new Map<string, typeof entries>();
+      entries.forEach((entry) => {
+        const group = bySource.get(entry.sourcePath) ?? [];
+        group.push(entry);
+        bySource.set(entry.sourcePath, group);
+      });
+
+      const loaded = new Map<string, Document>();
+      await Promise.all([...bySource.keys()].map(async (sourcePath) => {
+        try {
+          const response = await fetch(chapterUrl(sourcePath), { cache: 'force-cache' });
+          if (!response.ok) return;
+          const html = await response.text();
+          loaded.set(sourcePath, new DOMParser().parseFromString(html, 'text/html'));
+        } catch {}
+      }));
+
+      const sections = new Map<string, HTMLElement>();
+      const years = [...new Set(entries.map((entry) => entry.year))].sort((a, b) => Number(a) - Number(b));
+      years.forEach((year, index) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'wrong-year-button';
+        button.textContent = year;
+        button.dataset.year = year;
+        if (index === 0) button.classList.add('is-active');
+        button.addEventListener('click', () => {
+          yearNav.querySelectorAll('.wrong-year-button').forEach((item) => item.classList.toggle('is-active', item === button));
+          sections.get(year)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+        yearNav.append(button);
+
+        const section = document.createElement('section');
+        section.className = 'wrong-year-section';
+        section.dataset.yearSection = year;
+        const h2 = document.createElement('h2');
+        h2.className = 'wrong-year-heading';
+        h2.textContent = `${year} 年`;
+        section.append(h2);
+        sections.set(year, section);
+        list.append(section);
+      });
+
+      entries
+        .sort((a, b) => Number(a.year) - Number(b.year) || a.key.localeCompare(b.key, 'zh-CN', { numeric: true }))
+        .forEach((entry) => {
+          const sourceDoc = loaded.get(entry.sourcePath);
+          const extracted = sourceDoc ? extractQuestion(sourceDoc, entry.headingId) : null;
+          const section = sections.get(entry.year);
+          if (!section) return;
+
+          const article = document.createElement('article');
+          article.className = 'wrong-question';
+          article.dataset.wrongKey = entry.key;
+
+          const head = document.createElement('div');
+          head.className = 'wrong-question-head';
+          const title = document.createElement('h3');
+          title.textContent = extracted?.title ?? entry.headingId;
+
+          const actions = document.createElement('div');
+          actions.className = 'wrong-question-actions';
+          const source = document.createElement('a');
+          source.href = `${chapterUrl(entry.sourcePath)}#${encodeURIComponent(entry.headingId)}`;
+          source.textContent = '回原题';
+          const remove = document.createElement('button');
+          remove.type = 'button';
+          remove.textContent = '移出错题';
+          remove.addEventListener('click', () => {
+            const next = readKeys().filter((key) => key !== entry.key);
+            saveKeys(next);
+            article.remove();
+            if (count) count.textContent = `共 ${next.length} 道错题`;
+            if (!next.length && empty) empty.hidden = false;
+            if (!section.querySelector('.wrong-question')) {
+              section.remove();
+              yearNav.querySelector(`[data-year="${entry.year}"]`)?.remove();
+            }
+          });
+          actions.append(source, remove);
+          head.append(title, actions);
+          article.append(head);
+          if (extracted) article.append(extracted.body);
+          else {
+            const fallback = document.createElement('p');
+            fallback.className = 'wrong-question-body';
+            fallback.textContent = '题面加载失败，可点“回原题”查看。';
+            article.append(fallback);
+          }
+          section.append(article);
+        });
+    }
+
+    void renderWrongBook();
+  </script>
+</ReaderLayout>

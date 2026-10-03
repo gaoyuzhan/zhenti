@@ -34,9 +34,11 @@ import { Check, Moon, Settings, Sun, Type, X } from '@lucide/astro';
     settingsRoot?.querySelectorAll<HTMLElement>(`[data-setting-${name}]`).forEach((button) => button.setAttribute('aria-pressed', String(button.dataset[`setting${name[0].toUpperCase()}${name.slice(1)}`] === value)));
     window.localStorage.setItem(storageKeys[name], value);
   };
-  const storedTheme = window.localStorage.getItem(storageKeys.theme) ?? 'light';
+  const storedTheme = window.localStorage.getItem(storageKeys.theme);
+  const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   const storedFont = window.localStorage.getItem(storageKeys.font) ?? 'medium';
-  applySetting('theme', storedTheme);
+  applySetting('theme', storedTheme === 'light' || storedTheme === 'dark' ? storedTheme : systemTheme);
+  if (storedTheme === null) window.localStorage.removeItem(storageKeys.theme);
   applySetting('font', storedFont);
   const setOpen = (open: boolean) => {
     if (!settingsPopover || !settingsTrigger) return;
