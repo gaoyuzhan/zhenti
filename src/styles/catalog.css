@@ -20,6 +20,19 @@
   overflow: clip;
   scrollbar-color: var(--home-rule-strong) var(--home-canvas);
 }
+:root[data-theme='dark'] .catalog-home {
+  --home-canvas: #17191c;
+  --home-surface: #1d2024;
+  --home-ink: #f3f4f6;
+  --home-muted: #a6adb7;
+  --home-rule: #353a42;
+  --home-rule-strong: #4a515c;
+  --home-accent: #9eb5a5;
+  --home-accent-hover: #b2c5b8;
+  --home-on-accent: #151916;
+  --home-hover: #292e34;
+  --home-art: #8fa595;
+}
 .catalog-home [hidden] { display: none !important; }
 .catalog-home ::selection { background: var(--home-accent); color: var(--home-on-accent); }
 .catalog-home a { color: inherit; text-underline-offset: 5px; }
