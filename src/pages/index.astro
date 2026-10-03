@@ -17,6 +17,7 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
       <a class="catalog-brand" href={`${siteBase}/`} aria-label="知间首页"><BookOpen size={22} stroke-width={1.8} aria-hidden="true" /><span>知间</span></a>
       <nav aria-label="首页导航">
         <a href="#catalog-library">浏览资料</a>
+        <a href={`${siteBase}/408/`}>408 真题</a>
         <a href="#catalog-about">关于与共建<ArrowUpRight size={15} aria-hidden="true" /></a>
         <a class="catalog-github" href={projectRepository} target="_blank" rel="noopener noreferrer" aria-label="GitHub：知间开源仓库（新窗口）" title="知间 GitHub 仓库">
           <!-- GitHub Octicons mark-github-16, MIT License, Copyright (c) GitHub, Inc. -->
@@ -41,7 +42,7 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
     <section class="catalog-library" id="catalog-library" aria-labelledby="library-title" tabindex="-1">
       <header class="catalog-library-heading">
         <h2 id="library-title">资料目录</h2>
-          <p>{books.length} 份资料</p>
+          <p>{books.length + 1} 份资料</p>
       </header>
       <div class="catalog-controls" data-catalog-controls hidden>
         <label class="catalog-search">
@@ -72,6 +73,19 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
             </a>
           </li>
         ))}
+        <li data-book-item data-title="2009–2026 年 408 真题分类库" data-author="408 统考真题" data-chapters="846">
+          <a class="catalog-book" href={`${siteBase}/408/`}>
+            <div class="catalog-book-copy">
+              <h3>2009–2026 年 408 真题分类库</h3>
+              <p>数据结构、计算机组成原理、操作系统、计算机网络；支持按年份、题型和知识点筛选，并保留错题、收藏与个人草稿。</p>
+            </div>
+            <div class="catalog-book-meta">
+              <span>在线题库</span>
+              <span>846 道题</span>
+            </div>
+            <span class="catalog-book-action">刷题<ArrowUpRight size={19} stroke-width={1.8} aria-hidden="true" /></span>
+          </a>
+        </li>
       </ul>
       <div class="catalog-empty" data-catalog-empty hidden={books.length > 0}>
         <p data-empty-message>{books.length > 0 ? '没有找到匹配的资料。试试其他名称或作者。' : '资料正在整理，暂时还没有公开条目。'}</p>
@@ -82,7 +96,7 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
     <footer class="catalog-about" id="catalog-about" aria-labelledby="about-title">
       <div>
         <h2 id="about-title">知识的下一页，<br />也可以由你写下。</h2>
-        <p>首批提供数学一、数学二真题整理文本，仍可能存在识别或排版错误。发现问题，可从阅读页查看 GitHub 原文，提交 Issue 或 PR。</p>
+        <p>当前提供数学一、数学二真题整理文本，并接入 2009–2026 年 408 真题分类库。整理资料仍可能存在识别、分类或排版错误，发现问题可从来源页面核对并提交纠错。</p>
       </div>
       <a class="catalog-template" href={`${projectRepository}/blob/main/CONTRIBUTING.md`}>
         <span>一起完善资料库</span>
