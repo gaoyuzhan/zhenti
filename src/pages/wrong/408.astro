@@ -21,7 +21,7 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
           <a class="wrong-back" href={`${siteBase}/`}>← 返回知间</a>
           <h1>408 错题集</h1>
           <p>只显示你在 408 真题中标记过“错题”的题目。左边按年份定位，右边连续复习错题；题图和已校对选择题答案与 408 主题库保持一致。</p>
-          <div class="wrong-summary"><span data-wrong-count>正在读取本机错题…</span><span>数据仅保存在当前浏览器</span></div>
+          <div class="wrong-summary"><span data-wrong-count>正在读取错题…</span><span>手动标记保存在当前浏览器；判卷同步错题会自动导入</span></div>
         </header>
         <div class="wrong-list" data-wrong-list></div>
         <div class="wrong-empty" data-wrong-empty hidden>
@@ -34,6 +34,7 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
   <script>
     // @ts-nocheck
     import { getVerified408ChoiceAnswer } from '../../data/408-answer-key';
+    import { assistant408WrongBatches } from '../../data/assistant-wrong-batches';
 
     const DATA_SOURCES = [
       'data-structure',
@@ -44,6 +45,7 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
     const RAW_BASE = 'https://raw.githubusercontent.com/zhaoyang51/cs408-notes/main/docs/public/data/practice';
     const PAGES_BASE = 'https://zhaoyang51.github.io/cs408-notes/data/practice';
     const storageKey = 'zhijian-408-wrong';
+    const assistantBatchStorageKey = 'zhijian-408-assistant-batches';
 
     const root = document.querySelector('[data-408-wrong-book]');
     const siteBase = root?.dataset.siteBase ?? '';
@@ -64,6 +66,19 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
 
     const saveWrong = (set) => {
       try { localStorage.setItem(storageKey, JSON.stringify([...set])); } catch {}
+    };
+
+    const readProcessedBatches = () => {
+      try {
+        const value = JSON.parse(localStorage.getItem(assistantBatchStorageKey) || '[]');
+        return new Set(Array.isArray(value) ? value.filter((item) => typeof item === 'string') : []);
+      } catch {
+        return new Set();
+      }
+    };
+
+    const saveProcessedBatches = (set) => {
+      try { localStorage.setItem(assistantBatchStorageKey, JSON.stringify([...set])); } catch {}
     };
 
     async function fetchJson(name) {
@@ -203,18 +218,43 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
     }
 
     async function load() {
-      const wrongSet = readWrong();
-      if (count) count.textContent = `共 ${wrongSet.size} 道错题`;
-      if (empty) empty.hidden = wrongSet.size > 0;
       list?.replaceChildren();
       yearNav?.replaceChildren();
-      if (!wrongSet.size || !list || !yearNav) return;
 
       const [datasets, manifest] = await Promise.all([
         Promise.all(DATA_SOURCES.map(fetchJson)),
         fetchManifest()
       ]);
-      const questions = datasets.flat().map(normalize)
+      const allQuestions = datasets.flat().map(normalize);
+      const wrongSet = readWrong();
+      const processed = readProcessedBatches();
+      const pending = assistant408WrongBatches.filter((batch) => !processed.has(batch.id));
+
+      pending.forEach((batch) => {
+        let complete = true;
+        batch.items.forEach((item) => {
+          const question = allQuestions.find((candidate) =>
+            candidate.year === item.year && candidate.qIndex === item.question
+          );
+          if (!question) {
+            complete = false;
+            return;
+          }
+          wrongSet.add(question.id);
+        });
+        if (complete) processed.add(batch.id);
+      });
+
+      if (pending.length) {
+        saveWrong(wrongSet);
+        saveProcessedBatches(processed);
+      }
+
+      if (count) count.textContent = `共 ${wrongSet.size} 道错题`;
+      if (empty) empty.hidden = wrongSet.size > 0;
+      if (!wrongSet.size || !list || !yearNav) return;
+
+      const questions = allQuestions
         .filter((question) => wrongSet.has(question.id))
         .sort((a, b) => a.year - b.year || a.qIndex - b.qIndex);
 
