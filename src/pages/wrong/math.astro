@@ -21,7 +21,7 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
           <a class="wrong-back" href={`${siteBase}/`}>← 返回知间</a>
           <h1>数学二错题集</h1>
           <p>只收录你在数学二真题页面点过“加入错题”的题目。左边按年份定位，右边连续显示错题题面；移出错题集后会立即消失。</p>
-          <div class="wrong-summary"><span data-wrong-count>正在读取本机错题…</span><span>数据仅保存在当前浏览器</span></div>
+          <div class="wrong-summary"><span data-wrong-count>正在读取错题…</span><span>手动标记保存在当前浏览器；判卷同步错题会自动导入</span></div>
         </header>
         <div class="wrong-list" data-wrong-list></div>
         <div class="wrong-empty" data-wrong-empty hidden>
@@ -32,9 +32,12 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
   </main>
 
   <script>
+    import { assistantMathTwoWrongBatches } from '../../data/assistant-wrong-batches';
+
     const root = document.querySelector<HTMLElement>('[data-math-wrong-book]');
     const siteBase = root?.dataset.siteBase ?? '';
     const storageKey = 'zhijian-math-two-wrong';
+    const assistantBatchStorageKey = 'zhijian-math-two-assistant-batches';
     const list = root?.querySelector<HTMLElement>('[data-wrong-list]');
     const empty = root?.querySelector<HTMLElement>('[data-wrong-empty]');
     const count = root?.querySelector<HTMLElement>('[data-wrong-count]');
@@ -51,6 +54,19 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
 
     const saveKeys = (keys: string[]) => {
       try { localStorage.setItem(storageKey, JSON.stringify(keys)); } catch {}
+    };
+
+    const readProcessedBatches = (): Set<string> => {
+      try {
+        const value = JSON.parse(localStorage.getItem(assistantBatchStorageKey) ?? '[]');
+        return new Set(Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : []);
+      } catch {
+        return new Set();
+      }
+    };
+
+    const saveProcessedBatches = (ids: Set<string>) => {
+      try { localStorage.setItem(assistantBatchStorageKey, JSON.stringify([...ids])); } catch {}
     };
 
     const parseKey = (key: string) => {
@@ -77,8 +93,49 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
       return { title: heading.textContent?.trim() || '题目', body };
     };
 
+    async function importAssistantWrongBatches(): Promise<string[]> {
+      const processed = readProcessedBatches();
+      const pending = assistantMathTwoWrongBatches.filter((batch) => !processed.has(batch.id));
+      if (!pending.length) return readKeys();
+
+      const keys = new Set(readKeys());
+      const years = [...new Set(pending.flatMap((batch) => batch.items.map((item) => item.year)))];
+      const documents = new Map<number, Document>();
+
+      await Promise.all(years.map(async (year) => {
+        try {
+          const response = await fetch(chapterUrl(`chapters/${year}.md`), { cache: 'force-cache' });
+          if (!response.ok) return;
+          const html = await response.text();
+          documents.set(year, new DOMParser().parseFromString(html, 'text/html'));
+        } catch {}
+      }));
+
+      pending.forEach((batch) => {
+        let complete = true;
+        batch.items.forEach((item) => {
+          const sourceDoc = documents.get(item.year);
+          const heading = sourceDoc
+            ? [...sourceDoc.querySelectorAll<HTMLElement>('h3[id]')].find((node) =>
+                new RegExp(`^第\\s*${item.question}\\s*题(?:\\D|$)`).test(node.textContent?.trim() ?? '')
+              )
+            : null;
+          if (!heading?.id) {
+            complete = false;
+            return;
+          }
+          keys.add(`chapters/${item.year}.md#${heading.id}`);
+        });
+        if (complete) processed.add(batch.id);
+      });
+
+      saveKeys([...keys]);
+      saveProcessedBatches(processed);
+      return [...keys];
+    }
+
     async function renderWrongBook() {
-      const keys = readKeys();
+      const keys = await importAssistantWrongBatches();
       list?.replaceChildren();
       yearNav?.replaceChildren();
       if (count) count.textContent = `共 ${keys.length} 道错题`;
