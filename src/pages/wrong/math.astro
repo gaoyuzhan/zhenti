@@ -62,7 +62,7 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
     };
 
     const chapterUrl = (sourcePath: string) =>
-      `${siteBase}/books/math-two-exams/${sourcePath.replace(/^chapters\//, '').replace(/\.(?:md|markdown)$/i, '')}/`;
+      `${siteBase}/books/math-two-exams/${sourcePath.replace(/\.(?:md|markdown)$/i, '')}/`;
 
     const extractQuestion = (doc: Document, headingId: string) => {
       const heading = doc.getElementById(headingId);
