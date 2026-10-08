@@ -18,31 +18,25 @@ export type AssistantWrongBatch<T> = {
  * Each browser imports a batch at most once, so users can still remove an item
  * from their local wrong-book without old batches re-adding it on every visit.
  *
- * Only confirmed question numbers are included. For 2021 math-II, the detailed
- * choice/fill-in item numbers were not retained, so only graded written answers
- * are imported. For 2011 CS408, the specific wrong choice numbers are unknown.
+ * Only confirmed question numbers are included. For 2011 math-II, only question 22 is confirmed in the available review.
+ * For 2011 CS408, the specific wrong choice numbers are unknown.
  */
 export const assistantMathTwoWrongBatches: readonly AssistantWrongBatch<AssistantMathTwoWrongItem>[] = [
   {
     id: 'math2-2021-graded-20261001',
     items: [
+      { year: 2021, question: 3 },
+      { year: 2021, question: 6 },
+      { year: 2021, question: 13 },
+      { year: 2021, question: 16 },
       { year: 2021, question: 18 },
       { year: 2021, question: 19 },
       { year: 2021, question: 20 },
-      { year: 2021, question: 21 },
     ],
   },
   {
     id: 'math2-2011-reviewed-20261005',
     items: [
-      { year: 2011, question: 3 },
-      { year: 2011, question: 6 },
-      { year: 2011, question: 9 },
-      { year: 2011, question: 13 },
-      { year: 2011, question: 16 },
-      { year: 2011, question: 18 },
-      { year: 2011, question: 19 },
-      { year: 2011, question: 20 },
       { year: 2011, question: 22 },
     ],
   },
