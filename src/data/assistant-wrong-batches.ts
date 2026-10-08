@@ -103,6 +103,7 @@ export const assistant408WrongBatches: readonly AssistantWrongBatch<Assistant408
       { year: 2012, question: 44 }, // Arithmetic shift and five-stage pipeline hazards without forwarding
       { year: 2012, question: 45 }, // Periodic resident-set scanning and free-frame queue
       { year: 2012, question: 46 }, // FCB indexing, block-number width and maximum file size
+      { year: 2012, question: 47 }, // TCP three-way handshake, Ethernet padding, ACK bytes and TTL hops
     ],
   },
 ];
