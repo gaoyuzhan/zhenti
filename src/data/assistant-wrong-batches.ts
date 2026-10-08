@@ -95,4 +95,11 @@ export const assistant408WrongBatches: readonly AssistantWrongBatch<Assistant408
       { year: 2012, question: 37 }, // IP router forwarding and reliability
     ],
   },
+  {
+    id: 'cs408-2012-comprehensive-reviewed-20261008',
+    items: [
+      { year: 2012, question: 42 }, // Shared suffix start in two intersecting linked lists
+      { year: 2012, question: 43 }, // MIPS, Cache misses, page faults, DMA and interleaved memory
+    ],
+  },
 ];
