@@ -101,6 +101,8 @@ export const assistant408WrongBatches: readonly AssistantWrongBatch<Assistant408
       { year: 2012, question: 42 }, // Shared suffix start in two intersecting linked lists
       { year: 2012, question: 43 }, // MIPS, Cache misses, page faults, DMA and interleaved memory
       { year: 2012, question: 44 }, // Arithmetic shift and five-stage pipeline hazards without forwarding
+      { year: 2012, question: 45 }, // Periodic resident-set scanning and free-frame queue
+      { year: 2012, question: 46 }, // FCB indexing, block-number width and maximum file size
     ],
   },
 ];
