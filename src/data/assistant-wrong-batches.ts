@@ -79,4 +79,20 @@ export const assistant408WrongBatches: readonly AssistantWrongBatch<Assistant408
       { year: 2021, question: 40 },
     ],
   },
+  {
+    id: 'cs408-2012-choice-reviewed-20261008',
+    items: [
+      { year: 2012, question: 4 },  // AVL minimum nodes, balance factor 1
+      { year: 2012, question: 12 }, // CPU and I/O time after CPU speedup
+      { year: 2012, question: 14 }, // IEEE 754 maximum finite positive float
+      { year: 2012, question: 15 }, // Little endian and struct alignment
+      { year: 2012, question: 17 }, // Cache two-way mapping and LRU
+      { year: 2012, question: 19 }, // Bus burst timing, shared address/data
+      { year: 2012, question: 23 }, // User mode vs kernel mode events
+      { year: 2012, question: 32 }, // Disk I/O optimization
+      { year: 2012, question: 35 }, // Ethernet MAC service model
+      { year: 2012, question: 36 }, // GBN window and sequence-number bits
+      { year: 2012, question: 37 }, // IP router forwarding and reliability
+    ],
+  },
 ];
