@@ -55,6 +55,13 @@ export const assistantMathTwoWrongBatches: readonly AssistantWrongBatch<Assistan
       { year: 2012, question: 22 },
     ],
   },
+  {
+    id: 'math2-practice-errors-20261008-a',
+    items: [
+      { year: 2005, question: 14 }, // 伴随矩阵交换行后的符号和列变换
+      { year: 2014, question: 4 },  // 参数曲线曲率半径
+    ],
+  },
 ];
 
 export const assistant408WrongBatches: readonly AssistantWrongBatch<Assistant408WrongItem>[] = [
