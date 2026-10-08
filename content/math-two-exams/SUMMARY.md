@@ -14,6 +14,7 @@
 - [2010](chapters/2010.md)
 - [2011](chapters/2011.md)
 - [2012](chapters/2012.md)
+  - [错题本 · 2012](chapters/mistakes-2012.md)
 - [2013](chapters/2013.md)
 - [2014](chapters/2014.md)
 - [2015](chapters/2015.md)
