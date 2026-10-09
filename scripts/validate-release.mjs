@@ -9,7 +9,12 @@ const catalog = JSON.parse(readFileSync(join(output, 'catalog-index.json'), 'utf
 assert.deepEqual(catalog.map(book => book.slug).sort(), expected, 'Unexpected launch catalog');
 const chapterCounts = Object.fromEntries(catalog.map(book => [book.slug, book.chapters]));
 assert.equal(chapterCounts['math-one-exams'], 17, 'Math I must contain 17 exams');
-assert.equal(chapterCounts['math-two-exams'], 27, 'Math II must contain 27 exams');
+// Math II contains 27 year-based exam papers; reviewed mistake chapters are supplemental,
+// and must not be counted as additional examination years.
+const mathTwoSupplementCount = readdirSync(resolve('content', 'math-two-exams', 'chapters'))
+  .filter(name => /^mistakes-\d{4}\.md$/.test(name)).length;
+assert.equal(chapterCounts['math-two-exams'], 27 + mathTwoSupplementCount,
+  'Math II must contain 27 exams plus the reviewed mistake chapters');
 assert.deepEqual(readdirSync(join(output, 'books')).sort(), expected, 'Unexpected reader routes');
 assert.deepEqual(readdirSync(join(output, 'book-assets')).sort(), expected, 'Stale book assets');
 
@@ -30,11 +35,16 @@ for (const book of catalog) {
   assert.deepEqual(filesUnder(assets).map(path => relative(assets, path)).sort(), authoredFiles, `Asset mismatch: ${book.slug}`);
   assert.ok(authoredFiles.every(path => ['.md', '.jpg', '.svg'].includes(extname(path))), 'Only approved Markdown and figures belong in this launch');
   const imageReferences = new Set();
-  const years = readdirSync(join(source, 'chapters')).sort();
+  const chapters = readdirSync(join(source, 'chapters')).sort();
   const expectedStart = book.slug === 'math-two-exams' ? 2000 : 2010;
   const expectedCount = book.slug === 'math-two-exams' ? 27 : 17;
-  assert.deepEqual(years, Array.from({ length: expectedCount }, (_, i) => `${expectedStart + i}.md`));
-  for (const name of years) {
+  const examFiles = Array.from({ length: expectedCount }, (_, i) => `${expectedStart + i}.md`);
+  const supplementaryFiles = book.slug === 'math-two-exams'
+    ? chapters.filter(name => /^mistakes-\d{4}\.md$/.test(name))
+    : [];
+  assert.deepEqual(chapters, [...examFiles, ...supplementaryFiles].sort(),
+    `Unexpected exam or supplement chapters: ${book.slug}`);
+  for (const name of chapters) {
     const markdown = readFileSync(join(source, 'chapters', name), 'utf8');
     const html = readFileSync(join(output, 'books', book.slug, 'chapters', name.replace('.md', ''), 'index.html'), 'utf8');
     assert.ok(!/data-source-pdf|<a\b[^>]*href=["'][^"']*\.pdf/i.test(html), `Unpublished PDF link: ${name}`);
