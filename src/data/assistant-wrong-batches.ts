@@ -68,6 +68,16 @@ export const assistantMathTwoWrongBatches: readonly AssistantWrongBatch<Assistan
       { year: 2015, question: 18 }, // Cartesian bounds correct; check symmetry removal of xy and final arithmetic
     ],
   },
+  {
+    id: 'math2-2015-reviewed-20261009-b',
+    items: [
+      { year: 2015, question: 19 }, // Correct derivative; omitted sign checks for at least two zeros and rigorous upper bound
+      { year: 2015, question: 21 }, // Correct tangent intercept; missing MVT plus f''>0 inequality to finish proof
+      { year: 2015, question: 22 }, // Correct factorization (I-A)X(I-A^2)=I; final inverse matrix calculation wrong
+      { year: 2015, question: 23 }, // det(A) sign inverted; a,b and eigenvectors consequently wrong
+    ],
+  },
+
 ];
 
 export const assistant408WrongBatches: readonly AssistantWrongBatch<Assistant408WrongItem>[] = [
