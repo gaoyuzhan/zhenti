@@ -122,4 +122,15 @@ export const assistant408WrongBatches: readonly AssistantWrongBatch<Assistant408
       { year: 2012, question: 47 }, // TCP three-way handshake, Ethernet padding, ACK bytes and TTL hops
     ],
   },
+  {
+    id: 'cs408-classified-20261009-reviewed-a',
+    items: [
+      { year: 2014, question: 41 }, // Leaf test recognized, but WPL depth-weight accumulation and recursive code absent
+      { year: 2014, question: 46 }, // Linked allocation 31 disk accesses correct; contiguous 59 count and max file size wrong
+      { year: 2017, question: 43 }, // Unsigned wraparound, IEEE float machine code and maximum n boundary mistakes
+      { year: 2017, question: 47 }, // GBN Q1 correct; Q2 send window and Q3 piggyback ACK wrong; utilization unfinished
+      { year: 2019, question: 43 }, // Philosophers semaphore init, deadlock prevention and full P/V flow incomplete
+    ],
+  },
+
 ];
