@@ -62,6 +62,12 @@ export const assistantMathTwoWrongBatches: readonly AssistantWrongBatch<Assistan
       { year: 2014, question: 4 },  // 参数曲线曲率半径
     ],
   },
+  {
+    id: 'math2-2015-reviewed-20261009-a',
+    items: [
+      { year: 2015, question: 18 }, // Polar-coordinate region misses sectors outside the intersection angles
+    ],
+  },
 ];
 
 export const assistant408WrongBatches: readonly AssistantWrongBatch<Assistant408WrongItem>[] = [
