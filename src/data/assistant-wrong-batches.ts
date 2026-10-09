@@ -65,7 +65,7 @@ export const assistantMathTwoWrongBatches: readonly AssistantWrongBatch<Assistan
   {
     id: 'math2-2015-reviewed-20261009-a',
     items: [
-      { year: 2015, question: 18 }, // Cartesian bounds correct; check symmetry removal of xy and final arithmetic
+      { year: 2015, question: 18 }, // Cartesian bounds and symmetry correct; trig substitution coefficient 4 instead of 8, wrong final result
     ],
   },
   {
