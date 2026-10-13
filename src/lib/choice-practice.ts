@@ -7,6 +7,7 @@ export interface ChoicePracticeConfig {
   answerStorageKey: string;
   wrongStorageKey: string;
   repeatStorageKey: string;
+  resetOnLoad?: boolean;
   layout?: 'letters' | 'rows';
   options?: Array<{ label: string; renderContent?: (target: HTMLElement) => void }>;
   onGraded?: (correct: boolean | null, secondWrong: boolean) => void;
@@ -68,7 +69,7 @@ export function createChoicePractice(config: ChoicePracticeConfig): HTMLDivEleme
   retry.textContent = '再做一次';
   const answer = /^[A-D]$/.test(config.answer) ? config.answer : '';
   const saved = readAnswerChoices(config.answerStorageKey);
-  let selected = /^[A-D]$/.test(saved[String(config.id)]?.selected)
+  let selected = !config.resetOnLoad && /^[A-D]$/.test(saved[String(config.id)]?.selected)
     ? saved[String(config.id)].selected : '';
   const buttons = new Map<string, HTMLButtonElement>();
 
