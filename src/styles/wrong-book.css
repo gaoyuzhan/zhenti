@@ -60,6 +60,13 @@
   color: var(--muted);
   font-size: 12px;
 }
+.wrong-view-switch { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.wrong-view-switch button { display: inline-flex; gap: 8px; align-items: center; justify-content: center; min-height: 38px; padding: 7px 14px; border: 1px solid var(--line-strong); border-radius: 7px; background: var(--paper); color: var(--secondary); font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+.wrong-view-switch button:hover { background: var(--hover); }
+.wrong-view-switch button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.wrong-view-switch button.is-active { border-color: var(--accent); background: var(--active); color: var(--ink); }
+.wrong-view-switch button span { font-size: 12px; font-variant-numeric: tabular-nums; }
+.wrong-answer-status { margin: 12px 0 0; color: var(--muted); font-size: 12px; line-height: 1.7; }
 .wrong-list { padding-top: 10px; }
 .wrong-year-section { margin-top: 28px; scroll-margin-top: 18px; }
 .wrong-year-heading {
