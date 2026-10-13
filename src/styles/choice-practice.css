@@ -1,0 +1,22 @@
+.choice-practice { margin: 14px 0 12px; padding: 12px; border: 1px solid var(--line, #d8d8d8); border-radius: 8px; }
+.choice-practice-title { margin: 0 0 9px; font-size: 12px; font-weight: 700; color: var(--secondary, #666); }
+.choice-practice-options { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.choice-practice--rows .choice-practice-options { grid-template-columns: 1fr; }
+.choice-practice-option { min-height: 40px; padding: 9px 12px; border: 1px solid var(--line-strong, #bbb); border-radius: 6px; background: var(--paper, #fff); color: var(--ink, #222); font: inherit; text-align: center; cursor: pointer; }
+.choice-practice--rows .choice-practice-option { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 8px; width: 100%; text-align: left; }
+.choice-practice-option strong { color: var(--accent, #496b82); }
+.choice-practice-option-text { min-width: 0; overflow-wrap: anywhere; line-height: 1.7; }
+.choice-practice-option-text > :first-child { margin-top: 0; }
+.choice-practice-option-text > :last-child { margin-bottom: 0; }
+.choice-practice-option:not(:disabled):hover { background: var(--hover, #f5f6f7); }
+.choice-practice-option:focus-visible, .choice-practice-retry:focus-visible { outline: 2px solid var(--accent, #4365a0); outline-offset: 2px; }
+.choice-practice-option:disabled { cursor: default; opacity: 1; }
+.choice-practice-option.is-selected { border-color: var(--accent, #4365a0); background: var(--active, #eaf0fa); }
+.choice-practice-option.is-correct { border-color: #54946d; background: #e9f7ee; color: #205b37; }
+.choice-practice-option.is-incorrect { border-color: #c56a66; background: #fff0ef; color: #972c2c; }
+.choice-practice-status { margin: 10px 0 0; font-size: 13px; line-height: 1.6; }
+.choice-practice-status.is-correct { color: #28804e; font-weight: 700; }
+.choice-practice-status.is-incorrect { color: #b33832; font-weight: 700; }
+.choice-practice-retry { min-height: 32px; margin-top: 7px; padding: 5px 10px; border: 1px solid var(--line-strong, #bbb); border-radius: 5px; background: var(--paper, #fff); color: var(--secondary, #555); font: inherit; font-size: 12px; cursor: pointer; }
+.choice-practice [hidden] { display: none !important; }
+@media (max-width: 440px) { .choice-practice-options { gap: 5px; } .choice-practice-option { padding: 8px 5px; } .choice-practice--rows .choice-practice-option { padding: 9px; } }
