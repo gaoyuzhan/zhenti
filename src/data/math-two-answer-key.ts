@@ -1,6 +1,8 @@
 // 2009-2025 multiple-choice answer letters sourced from the question metadata at:
 // https://github.com/lx-ruc/kaoyanshuxue/tree/main/kaoyan_math_images
-// This is third-party answer data, not an official answer key. Missing items remain ungraded.
+// 2026 was cross-checked against https://noobdream.com/Practice/exam_solution/42535/
+// and https://www.cnblogs.com/wildernessdreams/p/20074979
+// These are third-party answers, not an official answer key. Missing items remain ungraded.
 export const mathTwoChoiceAnswers: Readonly<Record<number, readonly string[]>> = {
   2009: ['C', 'A', 'D', 'C', 'B', 'D', 'B', ''],
   2010: ['B', 'A', 'C', 'D', 'B', 'D', 'A', 'D'],
@@ -18,7 +20,8 @@ export const mathTwoChoiceAnswers: Readonly<Record<number, readonly string[]>> =
   2022: ['C', 'D', 'B', 'C', 'A', 'D', 'A', 'B', 'D', 'C'],
   2023: ['B', 'D', 'B', 'C', 'C', 'A', 'C', 'D', 'B', 'D'],
   2024: ['C', 'B', 'D', 'D', 'C', 'A', 'B', 'C', 'D', 'B'],
-  2025: ['A', 'B', 'C', 'C', 'A', 'B', 'D', 'D', 'B', 'D']
+  2025: ['A', 'B', 'C', 'C', 'A', 'B', 'D', 'D', 'B', 'D'],
+  2026: ['A', 'B', 'A', 'D', 'C', 'B', 'D', 'B', 'A', 'D']
 };
 
 export function getMathTwoChoiceAnswer(year: number, questionNumber: number): string {
