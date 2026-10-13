@@ -154,7 +154,7 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
       yearNav?.replaceChildren();
       if (count) count.textContent = `共 ${keys.length} 道错题`;
       if (empty) empty.hidden = keys.length > 0;
-      if (!keys.length || !list || !yearNav) return;
+      if (!list || !yearNav) return;
 
       const entries = keys.map(parseKey);
       const bySource = new Map<string, typeof entries>();
