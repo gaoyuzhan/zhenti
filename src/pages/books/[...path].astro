@@ -1,5 +1,6 @@
 ---
 import ReaderLayout from '../../layouts/ReaderLayout.astro';
+import '../../styles/choice-practice.css';
 import { getReadableBooks } from '../../data/book-data';
 import { BookOpen, ChevronRight, Search, X } from '@lucide/astro';
 import ReaderHeader from '../../components/ReaderHeader.astro';
@@ -69,6 +70,7 @@ const concepts = document.headings.length > 0
             <div class="article-title-row">
               <h1>{document.title}</h1>
               {book.catalog.slug === 'math-two-exams' ? <a class="wrong-book-shortcut" href={`${siteBase}/wrong/math/`}>数学错题集</a> : null}
+                {book.catalog.slug === 'math-two-exams' ? <a class="wrong-book-shortcut" href={`${siteBase}/wrong/math/?tier=2`}>二重错题</a> : null}
             </div>
             {isEntryDocument && book.catalog.description ? <p class="dek">{book.catalog.description}</p> : null}
           </header>
@@ -105,6 +107,8 @@ const concepts = document.headings.length > 0
   <script>
     import { initializeReaderDrawers } from '../../lib/reader-drawers';
     import { initializeReaderSearch } from '../../lib/reader-search';
+    import { getMathTwoChoiceAnswer } from '../../data/math-two-answer-key';
+    import { createChoicePractice, findMathChoiceEnd } from '../../lib/choice-practice';
     const root = document.querySelector<HTMLElement>('[data-reader-root]');
     const drawers = root ? initializeReaderDrawers(root) : null;
     const search = root ? initializeReaderSearch(root) : null;
@@ -138,6 +142,8 @@ const concepts = document.headings.length > 0
     void renderFunctionPlots();
 
     const mathWrongStorageKey = 'zhijian-math-two-wrong';
+    const mathSecondWrongKey = 'zhijian-math-two-repeat-wrong';
+    const mathAnswersKey = 'zhijian-math-two-answers';
     if (root?.dataset.bookSlug === 'math-two-exams' && root.dataset.sourcePath?.startsWith('chapters/')) {
       let wrongKeys = new Set<string>();
       try {
@@ -168,6 +174,33 @@ const concepts = document.headings.length > 0
         });
         sync();
         heading.append(button);
+
+        // Add answer buttons after the four rendered alternatives without replacing any math/figures.
+        const questionNumber = Number(heading.textContent?.match(/^第\s*(\d+)\s*题/)?.[1]);
+        const year = Number(root.dataset.sourcePath?.match(/chapters\/(\d{4})\.md/)?.[1]);
+        const nodes: Element[] = [];
+        let next = heading.nextElementSibling;
+        while (next && !['H2', 'H3'].includes(next.tagName)) {
+          nodes.push(next);
+          next = next.nextElementSibling;
+        }
+        const optionEnd = findMathChoiceEnd(nodes);
+        if (optionEnd && Number.isInteger(questionNumber) && Number.isInteger(year)) {
+          const control = createChoicePractice({
+            id: key,
+            answer: getMathTwoChoiceAnswer(year, questionNumber),
+            answerStorageKey: mathAnswersKey,
+            wrongStorageKey: mathWrongStorageKey,
+            repeatStorageKey: mathSecondWrongKey,
+            onGraded: (correct) => {
+              if (correct === false) {
+                wrongKeys.add(key);
+                sync();
+              }
+            }
+          });
+          optionEnd.after(control);
+        }
       });
     }
 
