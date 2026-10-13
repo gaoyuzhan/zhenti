@@ -20,7 +20,7 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
         <header class="wrong-header">
           <a class="wrong-back" href={`${siteBase}/`}>← 返回知间</a>
           <h1>408 错题集</h1>
-          <p>只显示你在 408 真题中标记过“错题”的题目。左边按年份定位，右边连续复习错题；题图和已校对选择题答案与 408 主题库保持一致。</p>
+          <p>只显示你在 408 真题中标记过“错题”的题目。左边按年份定位，右边连续复习错题；题图和已校对选择题答案与 408 主题库保持一致。参考答案默认隐藏，点击查看后展开。</p>
           <div class="wrong-summary"><span data-wrong-count>正在读取错题…</span><span>手动标记保存在当前浏览器；判卷同步错题会自动导入</span></div>
         </header>
         <div class="wrong-list" data-wrong-list></div>
@@ -204,16 +204,21 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
         });
       }
 
-      const answer = document.createElement('div');
-      answer.className = 'wrong-answer';
+      const answerDetails = document.createElement('details');
+      answerDetails.className = 'wrong-answer';
+      const answerSummary = document.createElement('summary');
+      answerSummary.textContent = question.examType === 'choice' ? '查看参考答案' : '查看参考答案状态';
+      const answerContent = document.createElement('div');
+      answerContent.className = 'wrong-answer-content';
       const strong = document.createElement('strong');
       strong.textContent = '参考答案：';
-      answer.append(strong, document.createTextNode(
+      answerContent.append(strong, document.createTextNode(
         question.examType === 'choice'
           ? (question.answer || '待校对')
           : '综合大题答案仍在逐题校对，暂不展示未核内容'
       ));
-      article.append(answer);
+      answerDetails.append(answerSummary, answerContent);
+      article.append(answerDetails);
       section.append(article);
     }
 
