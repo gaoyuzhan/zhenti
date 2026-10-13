@@ -99,7 +99,9 @@ export function createChoicePractice(config: ChoicePracticeConfig): HTMLDivEleme
     }
   };
 
-  for (const option of config.options ?? ['A','B','C','D'].map((label) => ({ label }))) {
+  const availableOptions: NonNullable<ChoicePracticeConfig['options']> = config.options
+    ?? ['A','B','C','D'].map((label) => ({ label }));
+  for (const option of availableOptions) {
     const label = String(option.label || '').toUpperCase();
     if (!/^[A-D]$/.test(label)) continue;
     const button = document.createElement('button');
@@ -109,7 +111,7 @@ export function createChoicePractice(config: ChoicePracticeConfig): HTMLDivEleme
     letter.textContent = label;
     button.append(letter);
     if (option.renderContent) {
-      const content = document.createElement('span');
+      const content = document.createElement('div');
       content.className = 'choice-practice-option-text';
       option.renderContent(content);
       button.append(content);
