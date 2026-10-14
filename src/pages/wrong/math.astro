@@ -21,7 +21,7 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
         <header class="wrong-header">
           <a class="wrong-back" href={`${siteBase}/`}>← 返回知间</a>
           <h1>数学二错题集</h1>
-          <p>选择题直接点选并自动判分；填空题和解答题先查看参考答案，再用 ✓ / ✗ 自评。所有答题结果刷新后保留，再错自动进入二重错题。</p>
+          <p>选择题点选 A/B/C/D 自动判分；填空题和解答题先核对答案，再按「有思路算对 / 算错 / 差一点知识 / 完全没思路」四档自评。结果自动保存，二至四档的再次错题进入二重错题。</p>
           <div class="wrong-summary"><span data-wrong-count>正在读取错题…</span><span>记录保存在当前浏览器；判卷同步错题会自动导入</span></div>
           <div class="wrong-view-switch" role="group" aria-label="错题复习轮次">
             <button type="button" data-view-all>全部错题 <span data-count-all>0</span></button>
@@ -204,7 +204,7 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
         if (empty) {
           empty.hidden = visible.length > 0;
           empty.textContent = viewMode === 'repeat'
-            ? '还没有二重错题。选择题自动判错，主观题可通过 ✗ 做错了自行标记。'
+            ? '还没有二重错题。选择题自动判错；主观题复习时选择二、三或四档会记录再次做错。'
             : '还没有数学二错题。回到数学二真题页作答或手动标记错题即可。';
         }
         if (!visible.length || !list || !yearNav) return;
