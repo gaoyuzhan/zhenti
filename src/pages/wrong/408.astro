@@ -21,7 +21,7 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
         <header class="wrong-header">
           <a class="wrong-back" href={`${siteBase}/`}>← 返回知间</a>
           <h1>408 错题集</h1>
-          <p>选择题点选 A/B/C/D 自动判分，刷新页面也会保留上次选择和判题结果；点击“再做一次”才会清除本次答案。综合应用题可手动标记“再次做错”。</p>
+          <p>选择题点选 A/B/C/D 自动判分；综合应用题可先查看参考答案状态，再用 ✓ / ✗ 自评。结果会保存，再错可进入二重错题。</p>
           <div class="wrong-summary"><span data-wrong-count>正在读取错题…</span><span>记录只保存在当前浏览器；判卷同步错题会自动导入</span></div>
           <div class="wrong-view-switch" role="group" aria-label="错题复习轮次">
             <button type="button" data-view-all>全部错题 <span data-count-all>0</span></button>
@@ -40,7 +40,8 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
     // @ts-nocheck
     import { getVerified408ChoiceAnswer } from '../../data/408-answer-key';
     import { assistant408WrongBatches } from '../../data/assistant-wrong-batches';
-    import { createChoicePractice, createManualRepeatControl, readPracticeIds, savePracticeIds } from '../../lib/choice-practice';
+    import { createChoicePractice, readPracticeIds, savePracticeIds } from '../../lib/choice-practice';
+    import { createSubjectivePractice } from '../../lib/subjective-practice';
 
     const DATA_SOURCES = [
       'data-structure',
@@ -54,6 +55,7 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
     const assistantBatchStorageKey = 'zhijian-408-assistant-batches';
     const repeatStorageKey = 'zhijian-408-repeat-wrong';
     const reviewStorageKey = 'zhijian-408-review-answers';
+    const subjectiveReviewStorageKey = 'zhijian-408-review-subjective-answers';
 
     const root = document.querySelector('[data-408-wrong-book]');
     const siteBase = root?.dataset.siteBase ?? '';
@@ -155,7 +157,7 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
       };
     }
 
-    function renderQuestion(question, manifest, wrongSet, section, onRemove, onGraded, onRepeatChanged) {
+    function renderQuestion(question, manifest, wrongSet, section, onRemove, onGraded) {
       const article = document.createElement('article');
       article.className = 'wrong-question';
 
@@ -219,13 +221,18 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
           }
         }));
       } else {
-        const info = document.createElement('p');
-        info.className = 'wrong-answer-status';
-        info.textContent = '综合应用题不自动判分；自行核对后，如果再次做错，可在下方标记。';
-        article.append(info, createManualRepeatControl({
+        article.append(createSubjectivePractice({
           id: question.id,
+          resultStorageKey: subjectiveReviewStorageKey,
+          wrongStorageKey: storageKey,
           repeatStorageKey,
-          onChange: onRepeatChanged
+          reference: question.relatedPath
+            ? { relatedUrl: 'https://zhaoyang51.github.io/cs408-notes' + question.relatedPath.replace(/\/$/, '') + '/' }
+            : undefined,
+          onGraded: (grade) => {
+            if (grade === 'wrong') wrongSet.add(question.id);
+            onGraded();
+          }
         }));
       }
       section.append(article);
@@ -293,7 +300,7 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
         if (empty) {
           empty.hidden = visible.length > 0;
           empty.textContent = viewMode === 'repeat'
-            ? '还没有二重错题。选择题再错会自动记录；综合应用题可手动标记。'
+            ? '还没有二重错题。选择题会自动判错；综合题请在自评时点击 ✗ 做错了。'
             : '还没有 408 错题。回到 408 真题页作答或手动标记错题即可。';
         }
         if (!visible.length || !list || !yearNav) return;
@@ -321,10 +328,7 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
           list.append(section);
         });
         visible.forEach((question) =>
-          renderQuestion(question, manifest, wrongSet, sections.get(question.year), renderView, updateCounters, (repeated) => {
-            if (!repeated && viewMode === 'repeat') renderView();
-            else updateCounters();
-          })
+          renderQuestion(question, manifest, wrongSet, sections.get(question.year), renderView, updateCounters)
         );
       };
 
