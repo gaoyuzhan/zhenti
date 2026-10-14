@@ -35,14 +35,16 @@
 .subjective-reference-text { margin: 0; white-space: pre-wrap; font-size: 14px; line-height: 1.7; overflow-wrap: anywhere; }
 .subjective-reference-content > a:not(.subjective-reference-image) { width: fit-content; color: var(--accent, #496b82); font-size: 12px; }
 .subjective-grade-label { margin: 0; color: var(--secondary, #666); font-size: 12px; font-weight: 700; }
-.subjective-grade-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
-.subjective-grade-button { flex: 0 1 176px; min-height: 42px; padding: 8px 14px; border: 1px solid var(--line-strong, #bbb); border-radius: 6px; background: var(--paper, #fff); color: var(--ink, #222); font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+.subjective-grade-buttons { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.subjective-grade-button { width: 100%; min-height: 44px; padding: 9px 12px; border: 1px solid var(--line-strong, #bbb); border-radius: 6px; background: var(--paper, #fff); color: var(--ink, #222); font: inherit; font-size: 13px; font-weight: 700; text-align: left; cursor: pointer; }
 .subjective-grade-button:hover { background: var(--hover, #f5f6f7); }
 .subjective-grade-button.is-correct { background: #e9f7ee; border-color: #54946d; color: #205b37; }
-.subjective-grade-button.is-incorrect { background: #fff0ef; border-color: #c56a66; color: #972c2c; }
+.subjective-grade-button.is-incorrect { background: #fff3e9; border-color: #bd885e; color: #8d4a18; }
+.subjective-grade-button--level-3.is-incorrect { background: #fff7dd; border-color: #ba9a44; color: #755a16; }
+.subjective-grade-button--level-4.is-incorrect { background: #fff0ef; border-color: #c56a66; color: #972c2c; }
 .subjective-grade-feedback { margin: 0; font-size: 12px; line-height: 1.7; }
 .subjective-grade-feedback.is-correct { color: #27804e; }
 .subjective-grade-feedback.is-incorrect { color: #b33832; }
 .subjective-grade-retry { width: fit-content; min-height: 32px; padding: 6px 10px; border: 1px solid var(--line-strong, #bbb); border-radius: 5px; background: var(--paper, #fff); color: var(--secondary, #666); font: inherit; font-size: 12px; cursor: pointer; }
 .subjective-practice [hidden] { display: none !important; }
-@media (max-width: 440px) { .subjective-grade-button { flex: 1 1 120px; } }
+@media (max-width: 440px) { .subjective-grade-buttons { grid-template-columns: 1fr; } }
