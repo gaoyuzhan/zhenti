@@ -108,7 +108,9 @@ const concepts = document.headings.length > 0
     import { initializeReaderDrawers } from '../../lib/reader-drawers';
     import { initializeReaderSearch } from '../../lib/reader-search';
     import { getMathTwoChoiceAnswer } from '../../data/math-two-answer-key';
-    import { createChoicePractice, findMathChoiceEnd } from '../../lib/choice-practice';
+    import { getMathTwoWrittenAnswerReference } from '../../data/math-two-written-answers';
+    import { createSubjectivePractice } from '../../lib/subjective-practice';
+    import { createChoicePractice, findMathChoiceEnd, readPracticeIds } from '../../lib/choice-practice';
     const root = document.querySelector<HTMLElement>('[data-reader-root]');
     const drawers = root ? initializeReaderDrawers(root) : null;
     const search = root ? initializeReaderSearch(root) : null;
@@ -144,6 +146,7 @@ const concepts = document.headings.length > 0
     const mathWrongStorageKey = 'zhijian-math-two-wrong';
     const mathSecondWrongKey = 'zhijian-math-two-repeat-wrong';
     const mathAnswersKey = 'zhijian-math-two-answers';
+    const mathSubjectiveKey = 'zhijian-math-two-subjective-answers';
     if (root?.dataset.bookSlug === 'math-two-exams' && root.dataset.sourcePath?.startsWith('chapters/')) {
       let wrongKeys = new Set<string>();
       try {
@@ -200,6 +203,24 @@ const concepts = document.headings.length > 0
             }
           });
           optionEnd.after(control);
+        } else if (Number.isInteger(questionNumber) && Number.isInteger(year) && nodes.length > 0) {
+          const reference = getMathTwoWrittenAnswerReference(year, questionNumber);
+          const control = createSubjectivePractice({
+            id: key,
+            resultStorageKey: mathSubjectiveKey,
+            wrongStorageKey: mathWrongStorageKey,
+            repeatStorageKey: mathSecondWrongKey,
+            reference: reference ? {
+              ...reference,
+              note: '图片来自第三方考研数学真题整理，未经本站逐题校对，仅供自查。'
+            } : undefined,
+            onGraded: () => {
+              wrongKeys = new Set([...readPracticeIds(mathWrongStorageKey)]
+                .filter((id): id is string => typeof id === 'string'));
+              sync();
+            }
+          });
+          nodes[nodes.length - 1].after(control);
         }
       });
     }
