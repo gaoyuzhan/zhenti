@@ -1,5 +1,6 @@
 ---
 import ReaderLayout from '../layouts/ReaderLayout.astro';
+import '../styles/choice-practice.css';
 
 const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
@@ -39,7 +40,7 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
         <div>
           <p class="practice408-kicker">408 · 计算机学科专业基础综合</p>
           <h1 data-main-title>2009–2026 真题套卷 / 分类库</h1>
-          <p class="practice408-lead">默认按年份保留完整套卷，按原题号从第 1 题做到第 47 题；也可以切到“分类刷题”，再按科目、知识点、年份和题型筛选。选择题点选后立即判对错，每轮只提交一次，可选择再做一次；第二次答错的题自动进入二重错题。大题可记录解题思路；记录只保存在当前浏览器。</p>
+          <p class="practice408-lead">默认按年份保留完整套卷，按原题号从第 1 题做到第 47 题；也可以切到“分类刷题”，再按科目、知识点、年份和题型筛选。选择题点选后立即判对错，每轮只提交一次，可选择再做一次；第二次答错的题自动进入二重错题。综合题可先查看答案状态、再用 ✓ / ✗ 自评；记录只保存在当前浏览器。</p>
         </div>
       </div>
       <div class="practice408-stats" aria-live="polite">
@@ -144,6 +145,7 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
   <script>
     // @ts-nocheck
     import { getVerified408ChoiceAnswer } from '../data/408-answer-key';
+    import { createSubjectivePractice } from '../lib/subjective-practice';
     import { readPracticeIds, savePracticeIds } from '../lib/choice-practice';
 
     const DATA_SOURCES = [
@@ -155,6 +157,7 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
     const RAW_BASE = 'https://raw.githubusercontent.com/zhaoyang51/cs408-notes/main/docs/public/data/practice';
     const PAGES_BASE = 'https://zhaoyang51.github.io/cs408-notes/data/practice';
     const SOURCE_SITE = 'https://zhaoyang51.github.io/cs408-notes';
+    const subjectiveAnswerStorageKey = 'zhijian-408-subjective-answers';
     const ASSET_BASE = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/408-assets/figures`;
 
     const subjectNames = {
@@ -704,8 +707,27 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
       }
 
       answerDetails.append(answerSummary, answerBody);
-      if (question.examType === 'choice' && !state.answers[question.id]) answerDetails.hidden = true;
-      article.append(answerDetails);
+      if (question.examType === 'comprehensive') {
+        article.append(createSubjectivePractice({
+          id: question.id,
+          resultStorageKey: subjectiveAnswerStorageKey,
+          wrongStorageKey: storageKeys.wrong,
+          repeatStorageKey: 'zhijian-408-repeat-wrong',
+          reference: question.relatedPath
+            ? { relatedUrl: SOURCE_SITE + question.relatedPath.replace(/\/$/, '') + '/' }
+            : undefined,
+          onGraded: () => {
+            state.wrong = new Set(readPracticeIds(storageKeys.wrong));
+            saveStorage();
+            const marked = state.wrong.has(question.id);
+            wrongButton.className = marked ? 'is-active danger' : '';
+            wrongButton.textContent = marked ? '已加入错题' : '标记错题';
+          }
+        }));
+      } else {
+        if (!state.answers[question.id]) answerDetails.hidden = true;
+        article.append(answerDetails);
+      }
       return article;
     }
 
