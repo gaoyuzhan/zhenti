@@ -137,7 +137,7 @@ test('self-grading correct persists and correcting a mis-tap reverses its own se
     assert.ok(!readPracticeIds(config.repeatStorageKey).has(config.id));
     const refreshed = ui(createSubjectivePractice(config));
     assert.ok(refreshed.correct.classes.has('is-selected'));
-    assert.match(refreshed.feedback.textContent, /做对了/);
+    assert.match(refreshed.feedback.textContent, /一档.*算对了/);
 
     refreshed.retry.click();
     const nextRound = ui(createSubjectivePractice(config));
