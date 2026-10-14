@@ -153,3 +153,48 @@ export function createChoicePractice(config: ChoicePracticeConfig): HTMLDivEleme
   paint();
   return root;
 }
+
+
+export interface ManualRepeatControlConfig {
+  id: ChoiceId;
+  repeatStorageKey: string;
+  onChange?: (repeated: boolean) => void;
+}
+
+// Non-multiple-choice questions are self-graded. Use the same repeat IDs
+// as choice practice so both kinds of questions share the second-wrong view.
+export function createManualRepeatControl(config: ManualRepeatControlConfig): HTMLDivElement {
+  const root = document.createElement('div');
+  root.className = 'wrong-manual-repeat';
+
+  const label = document.createElement('span');
+  label.className = 'wrong-manual-repeat-label';
+  label.textContent = '本次重做：';
+
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'wrong-manual-repeat-button';
+
+  const paint = () => {
+    const repeated = readPracticeIds(config.repeatStorageKey).has(config.id);
+    button.classList.toggle('is-marked', repeated);
+    button.setAttribute('aria-pressed', String(repeated));
+    button.textContent = repeated
+      ? '已加入二重错题 · 点击撤销'
+      : '再次做错 · 标记二重错题';
+  };
+
+  button.addEventListener('click', () => {
+    const repeat = readPracticeIds(config.repeatStorageKey);
+    if (repeat.has(config.id)) repeat.delete(config.id);
+    else repeat.add(config.id);
+    savePracticeIds(config.repeatStorageKey, repeat);
+    const repeated = readPracticeIds(config.repeatStorageKey).has(config.id);
+    paint();
+    config.onChange?.(repeated);
+  });
+
+  root.append(label, button);
+  paint();
+  return root;
+}

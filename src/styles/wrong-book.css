@@ -66,6 +66,33 @@
 .wrong-view-switch button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .wrong-view-switch button.is-active { border-color: var(--accent); background: var(--active); color: var(--ink); }
 .wrong-view-switch button span { font-size: 12px; font-variant-numeric: tabular-nums; }
+
+.wrong-manual-repeat {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin: 14px 0 2px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.wrong-manual-repeat-label { color: var(--secondary); font-size: 13px; font-weight: 700; }
+.wrong-manual-repeat-button {
+  min-height: 36px;
+  padding: 7px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.wrong-manual-repeat-button:hover { background: var(--hover); }
+.wrong-manual-repeat-button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.wrong-manual-repeat-button.is-marked { border-color: var(--accent); background: var(--active); }
 .wrong-answer-status { margin: 12px 0 0; color: var(--muted); font-size: 12px; line-height: 1.7; }
 .wrong-list { padding-top: 10px; }
 .wrong-year-section { margin-top: 28px; scroll-margin-top: 18px; }

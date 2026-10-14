@@ -21,7 +21,7 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
         <header class="wrong-header">
           <a class="wrong-back" href={`${siteBase}/`}>← 返回知间</a>
           <h1>408 错题集</h1>
-          <p>点选 A/B/C/D 后立即判对错；复习时再次答错的题进入“二重错题”。每次打开错题集，答案都先隐藏。</p>
+          <p>选择题点选 A/B/C/D 自动判分；综合应用题可手动标记“再次做错”，加入二重错题。答案默认隐藏。</p>
           <div class="wrong-summary"><span data-wrong-count>正在读取错题…</span><span>记录只保存在当前浏览器；判卷同步错题会自动导入</span></div>
           <div class="wrong-view-switch" role="group" aria-label="错题复习轮次">
             <button type="button" data-view-all>全部错题 <span data-count-all>0</span></button>
@@ -40,7 +40,7 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
     // @ts-nocheck
     import { getVerified408ChoiceAnswer } from '../../data/408-answer-key';
     import { assistant408WrongBatches } from '../../data/assistant-wrong-batches';
-    import { createChoicePractice, readPracticeIds, savePracticeIds } from '../../lib/choice-practice';
+    import { createChoicePractice, createManualRepeatControl, readPracticeIds, savePracticeIds } from '../../lib/choice-practice';
 
     const DATA_SOURCES = [
       'data-structure',
@@ -155,7 +155,7 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
       };
     }
 
-    function renderQuestion(question, manifest, wrongSet, section, onRemove, onGraded) {
+    function renderQuestion(question, manifest, wrongSet, section, onRemove, onGraded, onRepeatChanged) {
       const article = document.createElement('article');
       article.className = 'wrong-question';
 
@@ -222,8 +222,12 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
       } else {
         const info = document.createElement('p');
         info.className = 'wrong-answer-status';
-        info.textContent = '综合应用题暂不支持自动判分；请在纸上完成，再回原题复盘。';
-        article.append(info);
+        info.textContent = '综合应用题不自动判分；自行核对后，如果再次做错，可在下方标记。';
+        article.append(info, createManualRepeatControl({
+          id: question.id,
+          repeatStorageKey,
+          onChange: onRepeatChanged
+        }));
       }
       section.append(article);
     }
@@ -290,7 +294,7 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
         if (empty) {
           empty.hidden = visible.length > 0;
           empty.textContent = viewMode === 'repeat'
-            ? '还没有二重错题。已经进入错题集的选择题，在复习中再次答错后会自动出现在这里。'
+            ? '还没有二重错题。选择题再错会自动记录；综合应用题可手动标记。'
             : '还没有 408 错题。回到 408 真题页作答或手动标记错题即可。';
         }
         if (!visible.length || !list || !yearNav) return;
@@ -318,7 +322,10 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
           list.append(section);
         });
         visible.forEach((question) =>
-          renderQuestion(question, manifest, wrongSet, sections.get(question.year), renderView, updateCounters)
+          renderQuestion(question, manifest, wrongSet, sections.get(question.year), renderView, updateCounters, (repeated) => {
+            if (!repeated && viewMode === 'repeat') renderView();
+            else updateCounters();
+          })
         );
       };
 
