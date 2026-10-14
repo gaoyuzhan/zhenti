@@ -21,7 +21,7 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
         <header class="wrong-header">
           <a class="wrong-back" href={`${siteBase}/`}>← 返回知间</a>
           <h1>408 错题集</h1>
-          <p>选择题点选 A/B/C/D 自动判分；综合应用题可手动标记“再次做错”，加入二重错题。答案默认隐藏。</p>
+          <p>选择题点选 A/B/C/D 自动判分，刷新页面也会保留上次选择和判题结果；点击“再做一次”才会清除本次答案。综合应用题可手动标记“再次做错”。</p>
           <div class="wrong-summary"><span data-wrong-count>正在读取错题…</span><span>记录只保存在当前浏览器；判卷同步错题会自动导入</span></div>
           <div class="wrong-view-switch" role="group" aria-label="错题复习轮次">
             <button type="button" data-view-all>全部错题 <span data-count-all>0</span></button>
@@ -208,7 +208,6 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
           answerStorageKey: reviewStorageKey,
           wrongStorageKey: storageKey,
           repeatStorageKey,
-          resetOnLoad: true,
           layout: 'rows',
           options: question.options.map((option) => ({
             label: option.label,
