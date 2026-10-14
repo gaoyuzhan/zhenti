@@ -58,9 +58,23 @@ const config = {
   repeatStorageKey: 'zhijian-math-two-repeat-wrong'
 };
 
-function ui(control: HTMLDivElement): { details: FakeElement; correct: FakeElement; wrong: FakeElement; feedback: FakeElement; retry: FakeElement } {
+function ui(control: HTMLDivElement): {
+  details: FakeElement;
+  levels: FakeElement[];
+  correct: FakeElement;
+  wrong: FakeElement;
+  feedback: FakeElement;
+  retry: FakeElement;
+} {
   const items = (control as unknown as FakeElement).children;
-  return { details: items[0], correct: items[2].children[0], wrong: items[2].children[1], feedback: items[3], retry: items[4] };
+  return {
+    details: items[0],
+    levels: items[2].children,
+    correct: items[2].children[0],
+    wrong: items[2].children[1],
+    feedback: items[3],
+    retry: items[4]
+  };
 }
 
 test('answers are hidden until requested, and answer images are lazily attached', () => {
@@ -90,6 +104,7 @@ test('marking an existing wrong-book question as wrong produces a persistent sec
     ui(createSubjectivePractice(config)).wrong.click();
     const saved = readSubjectiveGrades(config.resultStorageKey)[config.id];
     assert.equal(saved?.grade, 'wrong');
+    assert.equal(saved?.level, 2);
     assert.ok(readPracticeIds(config.repeatStorageKey).has(config.id));
     const refreshed = ui(createSubjectivePractice(config));
     assert.ok(refreshed.wrong.classes.has('is-selected'));
@@ -100,11 +115,12 @@ test('marking an existing wrong-book question as wrong produces a persistent sec
 
 test('first wrong enters wrong book without incorrectly counting as a second wrong', () => {
   fakeBrowser(() => {
-    const result = gradeSubjectiveAnswer(config, 'wrong');
+    const result = gradeSubjectiveAnswer(config, 2);
     assert.equal(result.secondWrong, false);
     assert.ok(readPracticeIds(config.wrongStorageKey).has(config.id));
     assert.ok(!readPracticeIds(config.repeatStorageKey).has(config.id));
     assert.equal(readSubjectiveGrades(config.resultStorageKey)[config.id].grade, 'wrong');
+    assert.equal(readSubjectiveGrades(config.resultStorageKey)[config.id].level, 2);
   });
 });
 
@@ -117,6 +133,7 @@ test('self-grading correct persists and correcting a mis-tap reverses its own se
 
     control.correct.click();
     assert.equal(readSubjectiveGrades(config.resultStorageKey)[config.id].grade, 'correct');
+    assert.equal(readSubjectiveGrades(config.resultStorageKey)[config.id].level, 1);
     assert.ok(!readPracticeIds(config.repeatStorageKey).has(config.id));
     const refreshed = ui(createSubjectivePractice(config));
     assert.ok(refreshed.correct.classes.has('is-selected'));
@@ -137,5 +154,85 @@ test('missing solution explicitly warns instead of pretending there is an answer
     control.details.trigger('toggle');
     const text = control.details.children[1].children[0].textContent;
     assert.match(text, /暂无已核对的参考答案/);
+  });
+});
+
+test('four grades match the requested mastery tiers and preserve the selected level after refresh', () => {
+  fakeBrowser(() => {
+    const first = ui(createSubjectivePractice(config));
+    assert.equal(first.levels.length, 4);
+    const labels = first.levels.map((button) => button.textContent);
+    assert.deepEqual(labels, [
+      '一档 · 有思路，算对了',
+      '二档 · 有思路，算错了',
+      '三档 · 差一点关键知识或思路',
+      '四档 · 完全没思路'
+    ]);
+    first.levels[2].click();
+    const saved = readSubjectiveGrades(config.resultStorageKey)[config.id];
+    assert.equal(saved.grade, 'wrong');
+    assert.equal(saved.level, 3);
+    const refreshed = ui(createSubjectivePractice(config));
+    assert.ok(refreshed.levels[2].classes.has('is-selected'));
+    assert.match(refreshed.feedback.textContent, /三档/);
+  });
+});
+
+test('switching between second, third, and fourth tiers is one wrong attempt, not multiple wrongs', () => {
+  fakeBrowser((storage) => {
+    storage.set(config.wrongStorageKey, JSON.stringify([config.id]));
+    const control = ui(createSubjectivePractice(config));
+    control.levels[1].click();
+    assert.equal(readSubjectiveGrades(config.resultStorageKey)[config.id].level, 2);
+    assert.equal(readPracticeIds(config.repeatStorageKey).size, 1);
+    control.levels[2].click();
+    control.levels[3].click();
+    assert.equal(readPracticeIds(config.repeatStorageKey).size, 1);
+    const saved = readSubjectiveGrades(config.resultStorageKey)[config.id];
+    assert.equal(saved.level, 4);
+    assert.equal(saved.grade, 'wrong');
+    const refreshed = ui(createSubjectivePractice(config));
+    assert.ok(refreshed.levels[3].classes.has('is-selected'));
+    assert.match(refreshed.feedback.textContent, /四档/);
+    assert.match(refreshed.feedback.textContent, /二重错题/);
+  });
+});
+
+test('previous correct/wrong marks remain available without inventing a tier for old mistakes', () => {
+  fakeBrowser((storage) => {
+    storage.set(config.resultStorageKey, JSON.stringify({
+      [config.id]: { grade: 'wrong', at: 100, addedWrong: false }
+    }));
+    storage.set(config.wrongStorageKey, JSON.stringify([config.id]));
+    const oldRecord = readSubjectiveGrades(config.resultStorageKey)[config.id];
+    assert.equal(oldRecord.level, undefined);
+    const oldUi = ui(createSubjectivePractice(config));
+    assert.ok(!oldUi.levels.some((level) => level.classes.has('is-selected')));
+    assert.match(oldUi.feedback.textContent, /尚未细分档位/);
+    oldUi.levels[2].click();
+    assert.equal(readSubjectiveGrades(config.resultStorageKey)[config.id].level, 3);
+    assert.ok(readPracticeIds(config.wrongStorageKey).has(config.id));
+
+    const legacyCorrectConfig = { ...config, id: 'old-correct' };
+    storage.set(config.resultStorageKey, JSON.stringify({
+      [config.id]: readSubjectiveGrades(config.resultStorageKey)[config.id],
+      'old-correct': { grade: 'correct', at: 101 }
+    }));
+    const correctUi = ui(createSubjectivePractice(legacyCorrectConfig));
+    assert.ok(correctUi.levels[0].classes.has('is-selected'));
+  });
+});
+
+test('grading is reject-safe and regrading from fourth tier to first reverses only newly added flags', () => {
+  fakeBrowser(() => {
+    const initial = gradeSubjectiveAnswer(config, 4);
+    assert.equal(initial.record.level, 4);
+    assert.equal(initial.secondWrong, false);
+    assert.ok(readPracticeIds(config.wrongStorageKey).has(config.id));
+    const correction = gradeSubjectiveAnswer(config, 1);
+    assert.equal(correction.record.level, 1);
+    assert.ok(!readPracticeIds(config.wrongStorageKey).has(config.id));
+    assert.ok(!readPracticeIds(config.repeatStorageKey).has(config.id));
+    assert.throws(() => gradeSubjectiveAnswer(config, 5 as never), /Invalid subjective grading level/);
   });
 });
