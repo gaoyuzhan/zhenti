@@ -78,6 +78,78 @@ export const assistantMathTwoWrongBatches: readonly AssistantWrongBatch<Assistan
     ],
   },
 
+  {
+    id: 'math2-2021-full-review-20261014',
+    items: [
+      { year: 2021, question: 1 },
+      { year: 2021, question: 4 },
+      { year: 2021, question: 9 },
+      { year: 2021, question: 11 },
+      { year: 2021, question: 14 },
+      { year: 2021, question: 15 },
+      { year: 2021, question: 16 },
+      { year: 2021, question: 18 },
+      { year: 2021, question: 19 },
+      { year: 2021, question: 20 },
+      { year: 2021, question: 21 },
+    ],
+  },
+  {
+    id: 'math2-2011-full-review-20261014',
+    items: [
+      { year: 2011, question: 3 },
+      { year: 2011, question: 6 },
+      { year: 2011, question: 9 },
+      { year: 2011, question: 13 },
+      { year: 2011, question: 16 },
+      { year: 2011, question: 18 },
+      { year: 2011, question: 19 },
+      { year: 2011, question: 20 },
+    ],
+  },
+  {
+    id: 'math2-2015-full-review-20261014',
+    items: [
+      { year: 2015, question: 2 },
+      { year: 2015, question: 3 },
+      { year: 2015, question: 12 },
+      { year: 2015, question: 14 },
+      { year: 2015, question: 18 },
+      { year: 2015, question: 19 },
+      { year: 2015, question: 20 },
+      { year: 2015, question: 21 },
+      { year: 2015, question: 22 },
+      { year: 2015, question: 23 },
+    ],
+  },
+  {
+    id: 'math2-2013-full-review-20261014',
+    items: [
+      { year: 2013, question: 3 },
+      { year: 2013, question: 10 },
+      { year: 2013, question: 13 },
+      { year: 2013, question: 14 },
+      { year: 2013, question: 18 },
+      { year: 2013, question: 19 },
+      { year: 2013, question: 20 },
+      { year: 2013, question: 21 },
+      { year: 2013, question: 22 },
+    ],
+  },
+  {
+    id: 'math2-2012-full-review-20261014',
+    items: [
+      { year: 2012, question: 3 },
+      { year: 2012, question: 12 },
+      { year: 2012, question: 13 },
+      { year: 2012, question: 14 },
+      { year: 2012, question: 18 },
+      { year: 2012, question: 19 },
+      { year: 2012, question: 20 },
+      { year: 2012, question: 21 },
+      { year: 2012, question: 22 },
+    ],
+  },
 ];
 
 export const assistant408WrongBatches: readonly AssistantWrongBatch<Assistant408WrongItem>[] = [
