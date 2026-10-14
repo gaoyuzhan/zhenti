@@ -1,6 +1,14 @@
 import { readPracticeIds, savePracticeIds, type ChoiceId } from './choice-practice';
 
 export type SubjectiveGrade = 'correct' | 'wrong';
+export type SubjectiveLevel = 1 | 2 | 3 | 4;
+
+export const subjectiveLevelLabels: Readonly<Record<SubjectiveLevel, string>> = {
+  1: '一档 · 有思路，算对了',
+  2: '二档 · 有思路，算错了',
+  3: '三档 · 差一点关键知识或思路',
+  4: '四档 · 完全没思路'
+};
 
 export type SubjectiveAnswerReference = {
   answerImageUrl?: string;
@@ -14,6 +22,7 @@ export type SubjectiveAnswerReference = {
 
 export type SubjectiveGradeRecord = {
   grade: SubjectiveGrade;
+  level?: SubjectiveLevel;
   at: number;
   addedWrong?: boolean;
   addedRepeat?: boolean;
@@ -25,7 +34,7 @@ export type SubjectivePracticeConfig = {
   wrongStorageKey: string;
   repeatStorageKey: string;
   reference?: SubjectiveAnswerReference | null;
-  onGraded?: (grade: SubjectiveGrade, secondWrong: boolean) => void;
+  onGraded?: (grade: SubjectiveGrade, secondWrong: boolean, level: SubjectiveLevel) => void;
 };
 
 export function readSubjectiveGrades(key: string): Record<string, SubjectiveGradeRecord> {
@@ -37,7 +46,16 @@ export function readSubjectiveGrades(key: string): Record<string, SubjectiveGrad
       if (!record || typeof record !== 'object') continue;
       const item = record as Partial<SubjectiveGradeRecord>;
       if (item.grade !== 'correct' && item.grade !== 'wrong') continue;
-      results[id] = { grade: item.grade, at: Number(item.at) || 0, addedWrong: item.addedWrong === true, addedRepeat: item.addedRepeat === true };
+      const level = Number(item.level);
+      const isValidLevel = [1, 2, 3, 4].includes(level)
+        && (level === 1) === (item.grade === 'correct');
+      results[id] = {
+        grade: item.grade,
+        ...(isValidLevel ? { level: level as SubjectiveLevel } : {}),
+        at: Number(item.at) || 0,
+        addedWrong: item.addedWrong === true,
+        addedRepeat: item.addedRepeat === true
+      };
     }
     return results;
   } catch {
@@ -56,8 +74,10 @@ function saveSubjectiveGrades(key: string, results: Record<string, SubjectiveGra
  */
 export function gradeSubjectiveAnswer(
   config: SubjectivePracticeConfig,
-  grade: SubjectiveGrade
+  level: SubjectiveLevel
 ): { secondWrong: boolean; record: SubjectiveGradeRecord } {
+  if (![1, 2, 3, 4].includes(level)) throw new Error('Invalid subjective grading level');
+  const grade: SubjectiveGrade = level === 1 ? 'correct' : 'wrong';
   const results = readSubjectiveGrades(config.resultStorageKey);
   const id = String(config.id);
   const previous = results[id];
@@ -86,6 +106,7 @@ export function gradeSubjectiveAnswer(
 
   const record: SubjectiveGradeRecord = {
     grade,
+    level,
     at: Date.now(),
     addedWrong,
     addedRepeat
@@ -95,7 +116,7 @@ export function gradeSubjectiveAnswer(
   savePracticeIds(config.wrongStorageKey, wrong);
   savePracticeIds(config.repeatStorageKey, repeat);
   const secondWrong = grade === 'wrong' && repeat.has(config.id);
-  config.onGraded?.(grade, secondWrong);
+  config.onGraded?.(grade, secondWrong, level);
   return { secondWrong, record };
 }
 
@@ -199,59 +220,68 @@ export function createSubjectivePractice(config: SubjectivePracticeConfig): HTML
 
   const label = document.createElement('p');
   label.className = 'subjective-grade-label';
-  label.textContent = '本次自评（自行对照答案）：';
+  label.textContent = '本次掌握程度（做完后自评一档）：';
+
   const buttons = document.createElement('div');
   buttons.className = 'subjective-grade-buttons';
-  const right = document.createElement('button');
-  right.type = 'button';
-  right.className = 'subjective-grade-button';
-  right.textContent = '✓ 做对了';
-  const wrong = document.createElement('button');
-  wrong.type = 'button';
-  wrong.className = 'subjective-grade-button';
-  wrong.textContent = '✗ 做错了';
+  const optionButtons = new Map<SubjectiveLevel, HTMLButtonElement>();
+  for (const level of [1, 2, 3, 4] as const) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'subjective-grade-button subjective-grade-button--level-' + level;
+    button.textContent = subjectiveLevelLabels[level];
+    button.setAttribute('data-level', String(level));
+    button.addEventListener('click', () => {
+      gradeSubjectiveAnswer(config, level);
+      paint();
+    });
+    optionButtons.set(level, button);
+    buttons.append(button);
+  }
+
   const feedback = document.createElement('p');
   feedback.className = 'subjective-grade-feedback';
   feedback.setAttribute('role', 'status');
   feedback.setAttribute('aria-live', 'polite');
+
   const retry = document.createElement('button');
   retry.type = 'button';
   retry.className = 'subjective-grade-retry';
   retry.textContent = '重新自评';
 
   const paint = () => {
-    const grade = readSubjectiveGrades(config.resultStorageKey)[String(config.id)]?.grade;
+    const record = readSubjectiveGrades(config.resultStorageKey)[String(config.id)];
+    // Legacy ✓/✗ results must remain readable without inventing a mistake tier.
+    const activeLevel = record?.level ?? (record?.grade === 'correct' ? 1 : undefined);
     const repeated = readPracticeIds(config.repeatStorageKey).has(config.id);
-    right.classList.toggle('is-selected', grade === 'correct');
-    right.classList.toggle('is-correct', grade === 'correct');
-    right.setAttribute('aria-pressed', String(grade === 'correct'));
-    wrong.classList.toggle('is-selected', grade === 'wrong');
-    wrong.classList.toggle('is-incorrect', grade === 'wrong');
-    wrong.setAttribute('aria-pressed', String(grade === 'wrong'));
-    retry.hidden = !grade;
-    feedback.hidden = !grade;
-    feedback.className = 'subjective-grade-feedback' + (grade === 'correct' ? ' is-correct' : grade === 'wrong' ? ' is-incorrect' : '');
-    feedback.textContent = grade === 'correct'
-      ? '已保存：本次做对了。'
-      : grade === 'wrong'
-        ? repeated ? '已保存：本次做错了，已标记二重错题。' : '已保存：本次做错了，已加入错题集。'
-        : '';
+    for (const [level, button] of optionButtons) {
+      const selected = level === activeLevel;
+      button.classList.toggle('is-selected', selected);
+      button.classList.toggle('is-correct', selected && level === 1);
+      button.classList.toggle('is-incorrect', selected && level !== 1);
+      button.setAttribute('aria-pressed', String(selected));
+    }
+    retry.hidden = !record;
+    feedback.hidden = !record;
+    feedback.className = 'subjective-grade-feedback' +
+      (record?.grade === 'correct' ? ' is-correct' : record?.grade === 'wrong' ? ' is-incorrect' : '');
+    if (!record) {
+      feedback.textContent = '';
+    } else if (!activeLevel) {
+      feedback.textContent = '历史记录：做错了（尚未细分档位），可重新选择二、三或四档。';
+    } else if (activeLevel === 1) {
+      feedback.textContent = '已保存：' + subjectiveLevelLabels[activeLevel] + '。';
+    } else {
+      feedback.textContent = '已保存：' + subjectiveLevelLabels[activeLevel] +
+        (repeated ? '；已记录为二重错题。' : '；已计入错题。');
+    }
   };
 
-  right.addEventListener('click', () => {
-    gradeSubjectiveAnswer(config, 'correct');
-    paint();
-  });
-  wrong.addEventListener('click', () => {
-    gradeSubjectiveAnswer(config, 'wrong');
-    paint();
-  });
   retry.addEventListener('click', () => {
     clearSubjectiveGrade(config);
     paint();
   });
 
-  buttons.append(right, wrong);
   root.append(label, buttons, feedback, retry);
   paint();
   return root;
