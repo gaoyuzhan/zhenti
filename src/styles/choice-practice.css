@@ -48,3 +48,14 @@
 .subjective-grade-retry { width: fit-content; min-height: 32px; padding: 6px 10px; border: 1px solid var(--line-strong, #bbb); border-radius: 5px; background: var(--paper, #fff); color: var(--secondary, #666); font: inherit; font-size: 12px; cursor: pointer; }
 .subjective-practice [hidden] { display: none !important; }
 @media (max-width: 440px) { .subjective-grade-buttons { grid-template-columns: 1fr; } }
+
+/* Reusable, auto-saved per-question notes in exam papers and wrong books. */
+.question-note-editor { margin: 16px 0 12px; padding: 12px 14px; border: 1px solid var(--line, #d8d8d8); border-radius: 8px; color: var(--ink, #222); background: var(--paper, #fff); }
+.question-note-editor summary { width: fit-content; min-height: 34px; padding: 6px 0; color: var(--accent, #496b82); font-size: 13px; font-weight: 750; cursor: pointer; }
+.question-note-editor summary:hover { text-decoration: underline; }
+.question-note-editor summary:focus-visible { outline: 2px solid var(--accent, #4365a0); outline-offset: 3px; }
+.question-note-editor-body { margin-top: 10px; }
+.question-note-editor-label { display: grid; gap: 8px; color: var(--secondary, #666); font-size: 12px; font-weight: 700; }
+.question-note-editor textarea { box-sizing: border-box; display: block; width: 100%; min-height: 110px; padding: 12px; resize: vertical; border: 1px solid var(--line-strong, #bbb); border-radius: 6px; background: var(--paper, #fff); color: var(--ink, #222); font: inherit; font-size: 13px; font-weight: 400; line-height: 1.7; overflow-wrap: anywhere; }
+.question-note-editor textarea:focus-visible { outline: 2px solid var(--accent, #4365a0); outline-offset: 1px; }
+.question-note-editor-status { margin: 8px 0 0; color: var(--muted, #777); font-size: 11px; line-height: 1.5; }
