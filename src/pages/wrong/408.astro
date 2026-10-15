@@ -21,7 +21,7 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
         <header class="wrong-header">
           <a class="wrong-back" href={`${siteBase}/`}>← 返回知间</a>
           <h1>408 错题集</h1>
-          <p>选择题点选 A/B/C/D 自动判分；综合应用题做完后按「有思路算对 / 算错 / 差一点知识 / 完全没思路」四档自评。结果自动保存，二至四档的再次错题进入二重错题。</p>
+          <p>选择题点选 A/B/C/D 自动判分；综合应用题做完后按「有思路算对 / 算错 / 差一点知识 / 完全没思路」四档自评。结果自动保存，二至四档的再次错题进入二重错题。每道错题下方还可输入自动保存的复盘笔记。</p>
           <div class="wrong-summary"><span data-wrong-count>正在读取错题…</span><span>记录只保存在当前浏览器；判卷同步错题会自动导入</span></div>
           <div class="wrong-view-switch" role="group" aria-label="错题复习轮次">
             <button type="button" data-view-all>全部错题 <span data-count-all>0</span></button>
@@ -42,6 +42,7 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
     import { assistant408WrongBatches } from '../../data/assistant-wrong-batches';
     import { createChoicePractice, readPracticeIds, savePracticeIds } from '../../lib/choice-practice';
     import { createSubjectivePractice } from '../../lib/subjective-practice';
+    import { createQuestionNoteEditor } from '../../lib/wrong-note-editor';
 
     const DATA_SOURCES = [
       'data-structure',
@@ -56,6 +57,7 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
     const repeatStorageKey = 'zhijian-408-repeat-wrong';
     const reviewStorageKey = 'zhijian-408-review-answers';
     const subjectiveReviewStorageKey = 'zhijian-408-review-subjective-answers';
+    const noteStorageKey = 'zhijian-408-notes';
 
     const root = document.querySelector('[data-408-wrong-book]');
     const siteBase = root?.dataset.siteBase ?? '';
@@ -235,6 +237,11 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
           }
         }));
       }
+      article.append(createQuestionNoteEditor({
+        id: question.id,
+        storageKey: noteStorageKey,
+        questionLabel: `${question.year}年408第${question.qIndex}题`
+      }));
       section.append(article);
     }
 
