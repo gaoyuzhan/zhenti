@@ -110,6 +110,7 @@ const concepts = document.headings.length > 0
     import { getMathTwoChoiceAnswer } from '../../data/math-two-answer-key';
     import { getMathTwoWrittenAnswerReference } from '../../data/math-two-written-answers';
     import { createSubjectivePractice } from '../../lib/subjective-practice';
+    import { createQuestionNoteEditor } from '../../lib/wrong-note-editor';
     import { createChoicePractice, findMathChoiceEnd, readPracticeIds } from '../../lib/choice-practice';
     const root = document.querySelector<HTMLElement>('[data-reader-root]');
     const drawers = root ? initializeReaderDrawers(root) : null;
@@ -147,6 +148,7 @@ const concepts = document.headings.length > 0
     const mathSecondWrongKey = 'zhijian-math-two-repeat-wrong';
     const mathAnswersKey = 'zhijian-math-two-answers';
     const mathSubjectiveKey = 'zhijian-math-two-subjective-answers';
+    const mathNoteStorageKey = 'zhijian-math-two-notes';
     if (root?.dataset.bookSlug === 'math-two-exams' && root.dataset.sourcePath?.startsWith('chapters/')) {
       let wrongKeys = new Set<string>();
       try {
@@ -203,6 +205,11 @@ const concepts = document.headings.length > 0
             }
           });
           optionEnd.after(control);
+          control.after(createQuestionNoteEditor({
+            id: key,
+            storageKey: mathNoteStorageKey,
+            questionLabel: `${year}年数学二第${questionNumber}题`
+          }));
         } else if (Number.isInteger(questionNumber) && Number.isInteger(year) && nodes.length > 0) {
           const reference = getMathTwoWrittenAnswerReference(year, questionNumber);
           const control = createSubjectivePractice({
@@ -221,6 +228,11 @@ const concepts = document.headings.length > 0
             }
           });
           nodes[nodes.length - 1].after(control);
+          control.after(createQuestionNoteEditor({
+            id: key,
+            storageKey: mathNoteStorageKey,
+            questionLabel: `${year}年数学二第${questionNumber}题`
+          }));
         }
       });
     }
