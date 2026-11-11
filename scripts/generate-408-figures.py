@@ -42,6 +42,32 @@ EVERFLOW_2026 = {
     46: "q46-directory-inode.svg",
 }
 
+WRONG_BATCH_ID = "cs408-131-choice-review-20261111"
+WRONG_BATCH_FILE = ROOT / "src" / "data" / "assistant-wrong-batches.ts"
+
+
+def required_wrong_choice_ids() -> set[tuple[int, int]]:
+    """Read the user's 131 wrong choices from the site source of truth."""
+    source = WRONG_BATCH_FILE.read_text(encoding="utf-8")
+    batch = re.search(
+        rf"id:\s*'{re.escape(WRONG_BATCH_ID)}'.*?items:\s*\[(.*?)\]",
+        source,
+        re.DOTALL,
+    )
+    if batch is None:
+        raise ValueError(f"missing 408 wrong-choice batch: {WRONG_BATCH_ID}")
+    ids = {
+        (int(year), int(number))
+        for year, number in re.findall(
+            r"\{\s*year:\s*(\d+)\s*,\s*question:\s*(\d+)\s*\}",
+            batch.group(1),
+        )
+    }
+    if len(ids) != 131:
+        raise ValueError(f"expected 131 unique wrong choices, found {len(ids)}")
+    return ids
+
+
 Q26_SVG = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 210" role="img" aria-labelledby="t d">
 <title id="t">2026 408 第26题资源访问操作</title>
 <desc id="d">依次执行 wait(S)、访问资源、signal(S)。</desc>
@@ -82,9 +108,23 @@ def render_crop(doc: fitz.Document, page_number: int, clip: list[float], destina
 
 def main() -> None:
     index = json.loads(download(INDEX_URL))
+    required_ids = required_wrong_choice_ids()
+    indexed_ids = {(int(q["year"]), int(q["number"])) for q in index["questions"]}
+    missing_ids = required_ids - indexed_ids
+    if missing_ids:
+        raise ValueError(f"wrong-choice questions missing from source index: {sorted(missing_ids)}")
+
+    # A matrix, resource-allocation table or code snippet can be essential even
+    # when the source text does not contain words like "as shown in the figure".
+    # Crop every recorded wrong choice so its complete original page excerpt is
+    # always available beside the practice question.
     visual_questions = [
         q for q in index["questions"]
-        if 2009 <= int(q["year"]) <= 2025 and VISUAL_RE.search(q.get("rawText", ""))
+        if 2009 <= int(q["year"]) <= 2025
+        and (
+            VISUAL_RE.search(q.get("rawText", ""))
+            or (int(q["year"]), int(q["number"])) in required_ids
+        )
     ]
 
     if OUT.exists():
@@ -130,7 +170,7 @@ def main() -> None:
         "These files are source-question crops for study/reference; do not treat OCR text as authoritative.\n",
         encoding="utf-8",
     )
-    print(f"generated {len(manifest)} visual-question crops")
+    print(f"generated {len(manifest)} original-question crops, including {len(required_ids)} wrong choices")
 
 
 if __name__ == "__main__":
