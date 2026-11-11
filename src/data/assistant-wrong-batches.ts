@@ -19,7 +19,7 @@ export type AssistantWrongBatch<T> = {
  * from their local wrong-book without old batches re-adding it on every visit.
  *
  * Only confirmed question numbers are included. For 2011 math-II, only question 22 is confirmed in the available review.
- * For 2011 CS408, the specific wrong choice numbers are unknown.
+ * The 2011 CS408 choice error numbers are now confirmed by the user.
  */
 export const assistantMathTwoWrongBatches: readonly AssistantWrongBatch<AssistantMathTwoWrongItem>[] = [
   {
@@ -205,4 +205,20 @@ export const assistant408WrongBatches: readonly AssistantWrongBatch<Assistant408
     ],
   },
 
+  {
+    id: 'cs408-131-choice-review-20261111',
+    // 131 choice errors from the user's 10-year review log; 2022 Q30 awaits oral confirmation.
+    items: [
+      { year: 2011, question: 1 }, { year: 2011, question: 4 }, { year: 2011, question: 6 }, { year: 2011, question: 7 }, { year: 2011, question: 10 }, { year: 2011, question: 15 }, { year: 2011, question: 20 }, { year: 2011, question: 22 }, { year: 2011, question: 24 }, { year: 2011, question: 26 }, { year: 2011, question: 27 }, { year: 2011, question: 33 }, { year: 2011, question: 34 }, { year: 2011, question: 36 },
+      { year: 2012, question: 4 }, { year: 2012, question: 6 }, { year: 2012, question: 10 }, { year: 2012, question: 12 }, { year: 2012, question: 14 }, { year: 2012, question: 15 }, { year: 2012, question: 17 }, { year: 2012, question: 19 }, { year: 2012, question: 23 }, { year: 2012, question: 31 }, { year: 2012, question: 32 }, { year: 2012, question: 35 }, { year: 2012, question: 36 }, { year: 2012, question: 37 },
+      { year: 2013, question: 1 }, { year: 2013, question: 5 }, { year: 2013, question: 7 }, { year: 2013, question: 8 }, { year: 2013, question: 9 }, { year: 2013, question: 10 }, { year: 2013, question: 16 }, { year: 2013, question: 18 }, { year: 2013, question: 19 }, { year: 2013, question: 21 }, { year: 2013, question: 22 }, { year: 2013, question: 25 }, { year: 2013, question: 30 }, { year: 2013, question: 34 }, { year: 2013, question: 38 }, { year: 2013, question: 39 },
+      { year: 2014, question: 2 }, { year: 2014, question: 3 }, { year: 2014, question: 8 }, { year: 2014, question: 15 }, { year: 2014, question: 18 }, { year: 2014, question: 19 }, { year: 2014, question: 22 }, { year: 2014, question: 23 }, { year: 2014, question: 24 }, { year: 2014, question: 25 }, { year: 2014, question: 26 }, { year: 2014, question: 27 }, { year: 2014, question: 31 }, { year: 2014, question: 34 }, { year: 2014, question: 37 }, { year: 2014, question: 38 },
+      { year: 2015, question: 2 }, { year: 2015, question: 3 }, { year: 2015, question: 7 }, { year: 2015, question: 9 }, { year: 2015, question: 14 }, { year: 2015, question: 15 }, { year: 2015, question: 21 }, { year: 2015, question: 27 }, { year: 2015, question: 30 }, { year: 2015, question: 31 }, { year: 2015, question: 33 }, { year: 2015, question: 35 },
+      { year: 2019, question: 5 }, { year: 2019, question: 8 }, { year: 2019, question: 10 }, { year: 2019, question: 11 }, { year: 2019, question: 14 }, { year: 2019, question: 17 }, { year: 2019, question: 18 }, { year: 2019, question: 19 }, { year: 2019, question: 21 }, { year: 2019, question: 24 }, { year: 2019, question: 25 }, { year: 2019, question: 32 }, { year: 2019, question: 35 }, { year: 2019, question: 37 },
+      { year: 2020, question: 1 }, { year: 2020, question: 3 }, { year: 2020, question: 6 }, { year: 2020, question: 10 }, { year: 2020, question: 12 }, { year: 2020, question: 14 }, { year: 2020, question: 21 }, { year: 2020, question: 27 }, { year: 2020, question: 31 }, { year: 2020, question: 34 },
+      { year: 2021, question: 9 }, { year: 2021, question: 11 }, { year: 2021, question: 13 }, { year: 2021, question: 15 }, { year: 2021, question: 22 }, { year: 2021, question: 29 }, { year: 2021, question: 32 }, { year: 2021, question: 35 }, { year: 2021, question: 40 },
+      { year: 2022, question: 1 }, { year: 2022, question: 9 }, { year: 2022, question: 10 }, { year: 2022, question: 11 }, { year: 2022, question: 14 }, { year: 2022, question: 15 }, { year: 2022, question: 18 }, { year: 2022, question: 19 }, { year: 2022, question: 21 }, { year: 2022, question: 25 }, { year: 2022, question: 30 },
+      { year: 2023, question: 3 }, { year: 2023, question: 4 }, { year: 2023, question: 6 }, { year: 2023, question: 7 }, { year: 2023, question: 8 }, { year: 2023, question: 16 }, { year: 2023, question: 21 }, { year: 2023, question: 25 }, { year: 2023, question: 26 }, { year: 2023, question: 28 }, { year: 2023, question: 31 }, { year: 2023, question: 33 }, { year: 2023, question: 34 }, { year: 2023, question: 35 }, { year: 2023, question: 38 },
+    ],
+  },
 ];
