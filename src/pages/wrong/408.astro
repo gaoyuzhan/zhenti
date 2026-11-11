@@ -110,7 +110,7 @@ const siteBase = import.meta.env.BASE_URL.replace(/\/$/, '');
 
     async function fetchManifest() {
       try {
-        const response = await fetch(`${assetBase}/manifest.json`, { cache: 'force-cache' });
+        const response = await fetch(`${assetBase}/manifest.json`, { cache: 'no-store' });
         return response.ok ? await response.json() : {};
       } catch {
         return {};
